@@ -83,6 +83,51 @@ jobs:
             echo "✅ All ADRs have valid status - check passed"
           fi
 
+  frontend-checks:
+    name: Frontend Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Check for package.json
+        id: check-pkg
+        run: |
+          if [ -f "package.json" ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "✅ package.json found — frontend checks will run"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "⚠️  No package.json found — skipping npm-based checks (add frontend tooling to enable)"
+          fi
+
+      - name: Set up Node.js
+        if: steps.check-pkg.outputs.found == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          cache: 'npm'
+
+      - name: Install dependencies
+        if: steps.check-pkg.outputs.found == 'true'
+        run: npm ci
+
+      - name: Lint (ESLint)
+        if: steps.check-pkg.outputs.found == 'true'
+        run: npm run lint
+
+      - name: Type check (tsc --noEmit)
+        if: steps.check-pkg.outputs.found == 'true'
+        run: npm run typecheck
+
+      - name: Build
+        if: steps.check-pkg.outputs.found == 'true'
+        run: npm run build
+
+      - name: Test
+        if: steps.check-pkg.outputs.found == 'true'
+        run: npm test
+
   markdown-lint:
     name: Markdown Lint
     runs-on: ubuntu-latest
