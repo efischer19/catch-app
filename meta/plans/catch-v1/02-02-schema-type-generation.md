@@ -14,7 +14,7 @@ matches the backend data contract with zero manual type definitions.
 - [ ] The generated TypeScript interfaces include: `GoldTeamSchedule`, `GoldUpcomingGames`, `GoldGameSummary`, `GoldTeamInfo`, `GoldBoxscoreSummary`
 - [ ] The generated types are strict: no `any` types, all nullable fields use `| null` (not optional)
 - [ ] A pre-build hook runs type generation automatically before each build
-- [ ] The generated `generated.ts` file is `.gitignore`d (generated at build time, not committed)
+- [ ] The generated `generated.ts` file is excluded via `.gitignore` (generated at build time, not committed)
 - [ ] The `schema.json` file IS committed to the repo (it is the contract synced from catch-data)
 - [ ] TypeScript compilation succeeds with `strict: true` in `tsconfig.json`
 - [ ] A CI check verifies that type generation succeeds and the build compiles with the generated types
