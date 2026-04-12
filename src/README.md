@@ -1,19 +1,19 @@
 # `src/` — Frontend Source Files
 
 This directory contains all frontend source files for **Catch** — an MLB
-schedule and boxscore PWA with Chromecast casting support. No build step is
-required — open `index.html` directly in a browser to preview.
+schedule and boxscore PWA with Chromecast casting support. Run `npm run dev`
+from the project root to start the Vite dev server with hot reload.
 
 ## File Structure
 
 ```text
 src/
-├── index.html          # Main HTML entry point
+├── index.html          # Main HTML entry point (Vite root)
+├── main.ts             # TypeScript entry point (theme toggle, interactive behavior)
+├── vite-env.d.ts       # Vite TypeScript type declarations
 ├── assets/
 │   ├── styles.css      # Base stylesheet (CSS custom properties, responsive layout)
 │   └── favicon.svg     # Placeholder favicon
-├── scripts/
-│   └── app.js          # JavaScript entry point (theme toggle, interactive behavior)
 └── README.md           # This file — documents structure and conventions
 ```
 
@@ -43,10 +43,10 @@ src/
 - **No frameworks** — Vanilla CSS only. Add preprocessors or frameworks as
   needed via an ADR.
 
-### JavaScript (`scripts/app.js`)
+### TypeScript (`main.ts`)
 
-- **Vanilla ES6+** — No dependencies by default.
-- **Strict mode** — All scripts use `"use strict"`.
+- **Vanilla TypeScript** — No framework dependencies (see ADR-002).
+- **Strict mode** — TypeScript `strict` compiler option enabled.
 - **Progressive enhancement** — The page works without JavaScript; scripts add
   interactive enhancements (e.g., dark mode toggle).
 - **Accessibility** — Interactive elements include proper ARIA attributes and

@@ -14,16 +14,26 @@ with Chromecast casting support. It uses a two-repository architecture:
 
 ## Getting Started
 
-1. **Clone the repository** and open `src/index.html` in a browser — no build
-   step or dev server is required.
-2. **Install pre-commit hooks** to run quality checks locally:
+1. **Clone the repository** and install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. **Start the dev server** with hot reload:
+
+   ```bash
+   npm run dev
+   ```
+
+3. **Install pre-commit hooks** to run quality checks locally:
 
    ```bash
    pip install pre-commit
    pre-commit install
    ```
 
-3. **Run local quality checks** at any time with:
+4. **Run local quality checks** at any time with:
 
    ```bash
    ./scripts/local-ci-check.sh
@@ -35,12 +45,13 @@ with Chromecast casting support. It uses a two-repository architecture:
 catch-app/
 ├── src/              # Frontend source files
 │   ├── index.html    # Entry point with semantic HTML
+│   ├── main.ts       # TypeScript entry point
 │   ├── assets/
 │   │   ├── styles.css    # Stylesheet with CSS custom properties
 │   │   └── favicon.svg   # Placeholder favicon
-│   ├── scripts/
-│   │   └── app.js        # JavaScript entry point
 │   └── README.md         # Documents src/ structure and conventions
+├── public/           # Static assets (manifest, icons)
+├── tests/            # Vitest test files
 ├── meta/             # Development philosophy, ADRs, and plans
 ├── docs-src/         # Documentation source files (MkDocs)
 ├── scripts/          # Utility and automation scripts
