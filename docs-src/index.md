@@ -1,18 +1,33 @@
-# catch-app Documentation
+# Catch Documentation
 
-Welcome to the official documentation for **catch-app**.
+Welcome to the official documentation for **Catch** (`catch-app`).
 
 ## Overview
 
-catch-app is a frontend TypeScript PWA that displays baseball statistics sourced
-from the MLB Stats API via the
-[catch-data](https://github.com/efischer19/catch-data) companion repository.
+Catch is a progressive web app (PWA) for browsing MLB schedules and boxscores,
+with Chromecast casting support. It uses a two-repository architecture:
+
+- **[catch-data](https://github.com/efischer19/catch-data)** — Python backend
+  that fetches data from the MLB Stats API and publishes Gold JSON files to a CDN.
+- **catch-app** (this repo) — static frontend PWA that reads those JSON files
+  and renders schedules, boxscores, and Chromecast controls.
 
 ## Getting Started
 
-1. **Open `src/index.html`** in a browser to see the starter page.
-2. **Edit files in `src/`** — Modify `index.html`, `assets/styles.css`, and
-   `scripts/app.js` to build your application.
+1. **Clone the repository** and open `src/index.html` in a browser — no build
+   step or dev server is required.
+2. **Install pre-commit hooks** to run quality checks locally:
+
+   ```bash
+   pip install pre-commit
+   pre-commit install
+   ```
+
+3. **Run local quality checks** at any time with:
+
+   ```bash
+   ./scripts/local-ci-check.sh
+   ```
 
 ## Project Structure
 
