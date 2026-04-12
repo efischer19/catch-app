@@ -38,7 +38,8 @@ Catch uses a two-repository architecture:
 - **`src/index.html`** — Application entry point with semantic HTML
 - **`src/main.ts`** — TypeScript entry point (theme toggle, interactive behavior)
 - **`src/assets/styles.css`** — Responsive stylesheet with CSS custom properties and dark mode
-- **`public/sw.js`** — Service worker placeholder for PWA installability
+- **`public/sw.js`** — Service worker with app-shell precache + Gold JSON stale-while-revalidate
+- **`public/offline.html`** — Accessible offline fallback page
 - **`public/manifest.json`** — PWA web app manifest
 - **`vite.config.ts`** — Vite build configuration
 - **`tsconfig.json`** — TypeScript compiler configuration
