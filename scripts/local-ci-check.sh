@@ -12,8 +12,10 @@
 #
 # What this script runs:
 #   1. pre-commit hooks (trailing whitespace, end-of-file fixer, YAML/JSON/TOML
-#      validation, merge conflict detection, mixed line endings, ADR status check)
-#   2. Markdown linting (if markdownlint-cli2 is installed)
+#      validation, merge conflict detection, mixed line endings, ADR status check,
+#      ESLint, Prettier — when npm dependencies are installed)
+#   2. Frontend checks: npm ci, lint, typecheck, build (if package.json exists)
+#   3. Markdown linting (if markdownlint-cli2 is installed)
 #
 # To install pre-commit hooks for automatic checking on every commit:
 #   pre-commit install
@@ -33,6 +35,22 @@ else
   echo "   Install it with: pip install pre-commit"
   echo "   Then run: pre-commit install"
   exit 1
+fi
+
+echo ""
+
+# --- Frontend checks (when package.json exists) ---
+if [ -f "package.json" ]; then
+  echo "▶ Running frontend checks..."
+  # Use npm install (not npm ci) locally to preserve node_modules and speed up iteration
+  npm install
+  npm run lint
+  npm run typecheck
+  npm run build
+  echo "✅ Frontend checks passed"
+else
+  echo "⚠️  No package.json found — skipping frontend checks"
+  echo "   (Frontend tooling not yet set up — these checks will run once package.json is added)"
 fi
 
 echo ""

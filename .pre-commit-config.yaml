@@ -52,3 +52,21 @@ repos:
         language: system
         files: ^meta/adr/.*\.md$
         stages: [pre-commit]
+
+  # Frontend quality checks (active once npm dependencies are installed)
+  - repo: local
+    hooks:
+      - id: eslint
+        name: ESLint
+        entry: bash -c 'if [ -f "node_modules/.bin/eslint" ]; then node_modules/.bin/eslint --max-warnings=0 .; else echo "⚠️  ESLint not available — run npm ci to enable this check"; fi'
+        language: system
+        pass_filenames: false
+        types_or: [javascript, jsx, ts, tsx]
+        stages: [pre-commit]
+      - id: prettier
+        name: Prettier
+        entry: bash -c 'if [ -f "node_modules/.bin/prettier" ]; then node_modules/.bin/prettier --check .; else echo "⚠️  Prettier not available — run npm ci to enable this check"; fi'
+        language: system
+        pass_filenames: false
+        types_or: [javascript, jsx, ts, tsx, css, html, json]
+        stages: [pre-commit]
