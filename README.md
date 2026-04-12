@@ -44,7 +44,7 @@ Catch uses a two-repository architecture:
 - **`vite.config.ts`** — Vite build configuration
 - **`tsconfig.json`** — TypeScript compiler configuration
 - **`eslint.config.js`** — ESLint flat configuration for TypeScript
-- **`LICENSE.md`** — MIT License
+- **`LICENSE.md`** — GPL License
 - **`meta/adr/ADR-001-use_adrs.md`** — The founding ADR: use ADRs to document decisions
 - **`meta/adr/ADR-002-frontend-framework.md`** — ADR: Vanilla TypeScript with Vite
 
@@ -112,4 +112,4 @@ The repository includes two GitHub Actions deployment workflows:
 
 ## License
 
-This project is licensed under the [MIT License](./LICENSE.md).
+This project is licensed under a [GPL License](./LICENSE.md).
