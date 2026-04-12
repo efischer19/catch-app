@@ -85,6 +85,7 @@ function announceStatus(message: string): void {
   const status = document.getElementById("status-announcements");
   if (!status) return;
 
+  // Clear then re-set message so assistive tech re-announces repeated updates.
   status.textContent = "";
   requestAnimationFrame(() => {
     status.textContent = message;

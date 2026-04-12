@@ -4,31 +4,31 @@ const GOLD_DATA_CACHE = `catch-gold-data-${CACHE_VERSION}`;
 const CACHE_PREFIXES = ["catch-app-shell-", "catch-gold-data-"];
 const OFFLINE_MESSAGE = "You're offline — check back when connected.";
 
-const APP_SHELL_URLS = [
-  "/",
-  "/index.html",
-  "/assets/styles.css",
-  "/main.ts",
-  "/manifest.json",
-  "/favicon.svg",
-  "/offline.html",
-];
+const APP_SHELL_URLS = ["/manifest.json", "/favicon.svg", "/offline.html"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(APP_SHELL_CACHE);
+
+      try {
+        const htmlResponse = await fetch("/", { cache: "no-cache" });
+        if (htmlResponse.ok) {
+          await cache.put("/", htmlResponse.clone());
+          await cache.put("/index.html", htmlResponse.clone());
+
+          const html = await htmlResponse.text();
+          const bundleUrls = extractAssetUrlsFromHtml(html);
+          await Promise.all(
+            bundleUrls.map((url) => cacheAppShellUrl(cache, url)),
+          );
+        }
+      } catch {
+        // Ignore install-time fetch failures; runtime strategies still apply.
+      }
+
       await Promise.all(
-        APP_SHELL_URLS.map(async (url) => {
-          try {
-            const response = await fetch(url, { cache: "no-cache" });
-            if (response.ok) {
-              await cache.put(url, response.clone());
-            }
-          } catch {
-            // Ignore install-time fetch failures; runtime strategies still apply.
-          }
-        }),
+        APP_SHELL_URLS.map((url) => cacheAppShellUrl(cache, url)),
       );
       await self.skipWaiting();
     })(),
@@ -84,7 +84,7 @@ self.addEventListener("fetch", (event) => {
 });
 
 function isGoldJsonRequest(url) {
-  return url.pathname.endsWith(".json") && url.pathname !== "/manifest.json";
+  return url.pathname.endsWith(".json") && url.pathname.includes("/gold/");
 }
 
 function shouldCacheAppShellAsset(request, url) {
@@ -172,13 +172,30 @@ function createOfflineJsonResponse() {
 }
 
 function createOfflineHtmlResponse() {
-  return new Response(
-    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Offline</title></head><body><main><h1>${OFFLINE_MESSAGE}</h1><p>Reconnect to refresh schedules and upcoming games.</p></main></body></html>`,
-    {
-      status: 503,
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-      },
+  return new Response(OFFLINE_MESSAGE, {
+    status: 503,
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
     },
+  });
+}
+
+function extractAssetUrlsFromHtml(html) {
+  const assetMatchPattern = /<(?:script|link)[^>]+(?:src|href)=["']([^"']+)["']/gi;
+  const matches = [...html.matchAll(assetMatchPattern)];
+
+  return [...new Set(matches.map((match) => match[1]))].filter(
+    (url) => url.startsWith("/") && !url.endsWith(".mp4"),
   );
+}
+
+async function cacheAppShellUrl(cache, url) {
+  try {
+    const response = await fetch(url, { cache: "no-cache" });
+    if (response.ok) {
+      await cache.put(url, response.clone());
+    }
+  } catch {
+    // Ignore install-time fetch failures; runtime strategies still apply.
+  }
 }

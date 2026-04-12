@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 type SwListener = (event: SwInstallEvent | SwActivateEvent | SwFetchEvent) => void;
+type FetchMockFunction = (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+) => Promise<Response>;
 
 interface SwInstallEvent {
   waitUntil(promise: Promise<unknown>): void;
@@ -34,9 +39,8 @@ interface MockCacheStorage {
   delete(name: string): Promise<boolean>;
 }
 
-const SW_PATH = pathToFileURL(
-  "/home/runner/work/catch-app/catch-app/public/sw.js",
-).href;
+const SW_PATH = pathToFileURL(path.join(process.cwd(), "public/sw.js")).href;
+let moduleImportVersion = 0;
 
 const cacheKey = (request: Request | string): string =>
   typeof request === "string" ? request : request.url;
@@ -109,7 +113,7 @@ describe("service worker caching", () => {
   let cacheStorage: MockCacheStorage;
   let postMessageSpy: ReturnType<typeof vi.fn>;
   let claimSpy: ReturnType<typeof vi.fn>;
-  let fetchMock: ReturnType<typeof vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>>;
+  let fetchMock: ReturnType<typeof vi.fn<FetchMockFunction>>;
 
   beforeEach(async () => {
     vi.resetModules();
@@ -145,7 +149,8 @@ describe("service worker caching", () => {
       fetch: fetchMock,
     });
 
-    await import(`${SW_PATH}?t=${Date.now()}`);
+    moduleImportVersion += 1;
+    await import(`${SW_PATH}?v=${moduleImportVersion}`);
   });
 
   it("precaches app shell resources during install", async () => {
@@ -221,6 +226,7 @@ describe("service worker caching", () => {
     const request = new Request("https://media.example.com/game.mp4");
     await dispatchFetch(listeners, request);
 
+    expect(fetchMock).toHaveBeenCalledWith(request);
     expect(cacheStorage.stores.has("catch-gold-data-v1")).toBe(false);
     expect(cacheStorage.stores.has("catch-app-shell-v1")).toBe(false);
   });
