@@ -66,8 +66,27 @@ function applyTheme(theme: string, toggle: HTMLElement): void {
  */
 function registerServiceWorker(): void {
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/sw.js").catch(() => {
-      // Service worker registration failed — not critical for app function
-    });
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then(() => {
+        navigator.serviceWorker.addEventListener("message", (event) => {
+          if (event.data?.type === "gold-data-updated") {
+            announceStatus("Schedule updated.");
+          }
+        });
+      })
+      .catch(() => {
+        // Service worker registration failed — not critical for app function
+      });
   }
+}
+
+function announceStatus(message: string): void {
+  const status = document.getElementById("status-announcements");
+  if (!status) return;
+
+  status.textContent = "";
+  requestAnimationFrame(() => {
+    status.textContent = message;
+  });
 }
