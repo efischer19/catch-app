@@ -36,7 +36,7 @@ Catch uses a two-repository architecture:
 - **`src/index.html`** — Application entry point with semantic HTML
 - **`src/assets/styles.css`** — Responsive stylesheet with CSS custom properties and dark mode
 - **`src/scripts/app.js`** — JavaScript entry point
-- **`LICENSE.md`** — GPL-3.0 License
+- **`LICENSE.md`** — MIT License
 - **`CODE_OF_CONDUCT.md`** — Contributor Covenant Code of Conduct
 - **`SECURITY.md`** — Security policy and vulnerability reporting
 - **`CONTRIBUTING.md`** — Guidelines for contributing to the project
@@ -77,4 +77,4 @@ The repository includes two GitHub Actions deployment workflows:
 
 ## License
 
-This project is licensed under the [GPL-3.0 License](./LICENSE.md).
+This project is licensed under the [MIT License](./LICENSE.md).
