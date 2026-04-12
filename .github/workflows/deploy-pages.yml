@@ -24,17 +24,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      # Build step: uncomment once frontend tooling (package.json / Vite) is set up.
-      # When enabled, update upload-pages-artifact path below to `dist/`.
-      # - name: Set up Node.js
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version-file: '.node-version'
-      #     cache: 'npm'
-      # - name: Install dependencies
-      #   run: npm ci
-      # - name: Build site
-      #   run: npm run build
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site
+        run: npm run build
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
@@ -42,7 +42,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: src/
+          path: dist/
 
       - name: Deploy to GitHub Pages
         id: deployment

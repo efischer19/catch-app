@@ -1,18 +1,13 @@
 /**
- * Static JS App — Main Script
+ * Catch — Main Entry Point
  *
- * This is the JavaScript entry point for the application.
- * The default setup uses vanilla JavaScript with no build step.
- *
- * Includes a minimal dark mode toggle as an example of accessible
- * interactive patterns (keyboard navigable, ARIA attributes, screen
- * reader announcements).
+ * TypeScript entry point for the Catch PWA. Initializes interactive
+ * behavior including the dark mode toggle and service worker registration.
  */
-
-"use strict";
 
 document.addEventListener("DOMContentLoaded", () => {
   initThemeToggle();
+  registerServiceWorker();
 });
 
 /**
@@ -24,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
  * - Updates the `data-theme` attribute on <html> and persists the choice.
  * - Updates the toggle button's label and ARIA attributes.
  */
-function initThemeToggle() {
+function initThemeToggle(): void {
   const toggle = document.getElementById("theme-toggle");
   if (!toggle) return;
 
@@ -32,7 +27,7 @@ function initThemeToggle() {
 
   // Determine initial theme: saved preference > OS preference > light
   const saved = localStorage.getItem("theme");
-  const initial = saved || (prefersDark.matches ? "dark" : "light");
+  const initial = saved ?? (prefersDark.matches ? "dark" : "light");
   applyTheme(initial, toggle);
 
   // Toggle on click
@@ -44,7 +39,7 @@ function initThemeToggle() {
   });
 
   // Respond to OS preference changes (only if no saved preference)
-  prefersDark.addEventListener("change", (e) => {
+  prefersDark.addEventListener("change", (e: MediaQueryListEvent) => {
     if (!localStorage.getItem("theme")) {
       applyTheme(e.matches ? "dark" : "light", toggle);
     }
@@ -53,16 +48,26 @@ function initThemeToggle() {
 
 /**
  * Apply a theme and update the toggle button state.
- *
- * @param {"light" | "dark"} theme - The theme to apply.
- * @param {HTMLElement} toggle - The toggle button element.
  */
-function applyTheme(theme, toggle) {
+function applyTheme(theme: string, toggle: HTMLElement): void {
   document.documentElement.setAttribute("data-theme", theme);
   const isDark = theme === "dark";
   toggle.setAttribute("aria-pressed", String(isDark));
-  toggle.querySelector(".icon").textContent = isDark ? "☀️" : "🌙";
-  toggle.querySelector(".label").textContent = isDark
-    ? "Light mode"
-    : "Dark mode";
+
+  const icon = toggle.querySelector(".icon");
+  if (icon) icon.textContent = isDark ? "☀️" : "🌙";
+
+  const label = toggle.querySelector(".label");
+  if (label) label.textContent = isDark ? "Light mode" : "Dark mode";
+}
+
+/**
+ * Register the service worker for PWA installability.
+ */
+function registerServiceWorker(): void {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      // Service worker registration failed — not critical for app function
+    });
+  }
 }
