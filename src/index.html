@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="A static frontend application built with vanilla HTML, CSS, and JavaScript.">
-  <title>Static JS App</title>
+  <meta name="description" content="Catch — MLB schedule and boxscore PWA with Chromecast casting support.">
+  <title>Catch</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/styles.css">
 </head>
@@ -14,11 +14,11 @@
   <div class="page-wrapper">
     <header role="banner">
       <div class="header-content">
-        <h1>Static JS App</h1>
+        <h1>Catch</h1>
         <nav role="navigation" aria-label="Main navigation">
           <ul>
-            <li><a href="#welcome-heading">Welcome</a></li>
-            <li><a href="#features-heading">Features</a></li>
+            <li><a href="#schedule-heading">Schedule</a></li>
+            <li><a href="#about-heading">About</a></li>
           </ul>
         </nav>
         <button
@@ -35,41 +35,27 @@
     </header>
 
     <main id="main-content" role="main">
-      <section aria-labelledby="welcome-heading">
-        <h2 id="welcome-heading">Welcome</h2>
+      <section aria-labelledby="schedule-heading">
+        <h2 id="schedule-heading">Schedule</h2>
         <p>
-          A minimal starter built with vanilla HTML, CSS, and JavaScript.
-          Edit <code>src/index.html</code>, <code>src/assets/styles.css</code>,
-          and <code>src/scripts/app.js</code> to build your application.
+          Today's MLB schedule will appear here. Select a game to view the
+          live boxscore or cast it to a nearby Chromecast device.
         </p>
-        <p>No build step required &mdash; open this file directly in a browser.</p>
       </section>
 
-      <section aria-labelledby="features-heading">
-        <h2 id="features-heading">Features</h2>
-        <ul class="feature-list">
-          <li>
-            <h3>Semantic HTML</h3>
-            <p>Proper landmark elements and heading hierarchy for accessibility.</p>
-          </li>
-          <li>
-            <h3>Responsive CSS</h3>
-            <p>Mobile-first layout with custom properties and no framework dependencies.</p>
-          </li>
-          <li>
-            <h3>Dark Mode</h3>
-            <p>Accessible theme toggle with OS preference detection and persistence.</p>
-          </li>
-          <li>
-            <h3>Keyboard Navigable</h3>
-            <p>Skip-to-content link and visible focus indicators throughout.</p>
-          </li>
-        </ul>
+      <section aria-labelledby="about-heading">
+        <h2 id="about-heading">About</h2>
+        <p>
+          Catch is a progressive web app for browsing MLB schedules and
+          boxscores. Game data is sourced from the
+          <a href="https://github.com/efischer19/catch-data">catch-data</a>
+          companion repository and delivered as static JSON from a CDN.
+        </p>
       </section>
     </main>
 
     <footer role="contentinfo">
-      <p>Built with the <a href="https://github.com/efischer19/static-js-app-blueprint">static-js-app-blueprint</a> template.</p>
+      <p>&copy; 2025 catch-app contributors. Licensed under <a href="https://github.com/efischer19/catch-app/blob/main/LICENSE.md">GPL-3.0</a>.</p>
     </footer>
   </div>
 

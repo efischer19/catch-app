@@ -4,15 +4,21 @@
 
 ## What Is This?
 
-`catch-app` is a progressive web application that displays baseball statistics
-sourced from the MLB Stats API. Data collection and processing are handled by
-the companion [catch-data](https://github.com/efischer19/catch-data) repository;
-this repository is responsible for the user-facing frontend.
+`catch-app` is a progressive web application (PWA) for browsing MLB schedules
+and boxscores, with Chromecast casting support. Data collection and processing
+are handled by the companion [catch-data](https://github.com/efischer19/catch-data)
+repository; this repository is responsible for the user-facing frontend.
 
-The project is built on the
-[static-js-app-blueprint](https://github.com/efischer19/static-js-app-blueprint)
-template, which provides the foundational directory structure, documentation, and
-CI/CD configuration.
+## Architecture Overview
+
+Catch uses a two-repository architecture:
+
+- **[catch-data](https://github.com/efischer19/catch-data)** (Python backend) —
+  fetches data from the MLB Stats API, processes it into a compact "Gold JSON"
+  format, and publishes static JSON files to a CDN.
+- **catch-app** (this repo) — a static frontend PWA that reads those Gold JSON
+  files from the CDN and renders schedules, boxscores, and Chromecast controls.
+  No server-side logic is required; the app is deployed as a static site.
 
 ## Project Structure
 
@@ -30,7 +36,7 @@ CI/CD configuration.
 - **`src/index.html`** — Application entry point with semantic HTML
 - **`src/assets/styles.css`** — Responsive stylesheet with CSS custom properties and dark mode
 - **`src/scripts/app.js`** — JavaScript entry point
-- **`LICENSE.md`** — MIT License
+- **`LICENSE.md`** — GPL-3.0 License
 - **`CODE_OF_CONDUCT.md`** — Contributor Covenant Code of Conduct
 - **`SECURITY.md`** — Security policy and vulnerability reporting
 - **`CONTRIBUTING.md`** — Guidelines for contributing to the project
@@ -53,6 +59,11 @@ pip install -r docs-requirements.txt
 
 Open `src/index.html` directly in a browser to preview the application — no build step or dev server required.
 
+## Contributing
+
+Contributions are welcome! Please read [`CONTRIBUTING.md`](./CONTRIBUTING.md)
+for guidelines on reporting bugs, suggesting features, and submitting changes.
+
 ## Deployment
 
 The repository includes two GitHub Actions deployment workflows:
@@ -66,4 +77,4 @@ The repository includes two GitHub Actions deployment workflows:
 
 ## License
 
-This project is licensed under the [MIT License](./LICENSE.md).
+This project is licensed under the [GPL-3.0 License](./LICENSE.md).

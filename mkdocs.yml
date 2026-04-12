@@ -1,5 +1,5 @@
-site_name: "catch-app Documentation"
-site_description: "Documentation for catch-app"
+site_name: "Catch"
+site_description: "MLB schedule and boxscore PWA with Chromecast casting support"
 site_url: "https://efischer19.github.io/catch-app/"
 docs_dir: docs-src
 

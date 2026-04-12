@@ -1,7 +1,8 @@
 # `src/` — Frontend Source Files
 
-This directory contains all frontend source files for the application. No build
-step is required — open `index.html` directly in a browser to preview.
+This directory contains all frontend source files for **Catch** — an MLB
+schedule and boxscore PWA with Chromecast casting support. No build step is
+required — open `index.html` directly in a browser to preview.
 
 ## File Structure
 
