@@ -1,13 +1,12 @@
-# {{PROJECT_NAME}} Documentation
+# catch-app Documentation
 
-Welcome to the official documentation for **{{PROJECT_NAME}}**.
+Welcome to the official documentation for **catch-app**.
 
 ## Overview
 
-{{PROJECT_NAME}} is a static frontend application built on top of the
-[static-js-app-blueprint](https://github.com/efischer19/static-js-app-blueprint)
-template, which provides a foundation for HTML/CSS/JavaScript projects with
-documentation, architecture decision records, and developer tooling.
+catch-app is a frontend TypeScript PWA that displays baseball statistics sourced
+from the MLB Stats API via the
+[catch-data](https://github.com/efischer19/catch-data) companion repository.
 
 ## Getting Started
 
@@ -18,7 +17,7 @@ documentation, architecture decision records, and developer tooling.
 ## Project Structure
 
 ```text
-{{PROJECT_NAME}}/
+catch-app/
 ├── src/              # Frontend source files
 │   ├── index.html    # Entry point with semantic HTML
 │   ├── assets/
@@ -51,7 +50,7 @@ For information on contributing to this project, see the
 ## Getting Help
 
 - Check the documentation pages listed in the navigation
-- Review the [Architecture Decision Records](https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/tree/main/meta/adr)
+- Review the [Architecture Decision Records](https://github.com/efischer19/catch-app/tree/main/meta/adr)
   for context on past decisions
-- [Open an issue](https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/issues)
+- [Open an issue](https://github.com/efischer19/catch-app/issues)
   if you find a bug or want to suggest a feature
