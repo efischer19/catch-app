@@ -1,0 +1,3 @@
+[submodule "catch-data-ref"]
+	path = catch-data-ref
+	url = git@github.com:efischer19/catch-data.git
