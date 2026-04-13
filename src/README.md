@@ -10,6 +10,8 @@ from the project root to start the Vite dev server with hot reload.
 src/
 ├── index.html          # Main HTML entry point (Vite root)
 ├── main.ts             # TypeScript entry point (theme toggle, interactive behavior)
+├── services/
+│   └── data-service.ts # Gold JSON fetch/cache/error handling layer
 ├── vite-env.d.ts       # Vite TypeScript type declarations
 ├── assets/
 │   ├── styles.css      # Base stylesheet (CSS custom properties, responsive layout)
