@@ -107,7 +107,7 @@ declare global {
         ORIGIN_SCOPED: string;
       };
       media: {
-        DEFAULT_MEDIA_RECEIVER_APP_ID?: string;
+        DEFAULT_MEDIA_RECEIVER_APP_ID: string;
         GenericMediaMetadata: new () => ChromeCastMetadata;
         LoadRequest: new (mediaInfo: ChromeCastMediaInfo) => CastLoadRequest;
         MediaInfo: new (contentId: string, contentType: string) => ChromeCastMediaInfo;

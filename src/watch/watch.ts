@@ -1,6 +1,5 @@
 const DEFAULT_VIDEO_URL =
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-const DEFAULT_RECEIVER_APPLICATION_ID = "CC1AD845";
 
 interface WatchMedia {
   posterUrl: string | null;
@@ -142,8 +141,7 @@ export function initWatchPage(doc: Document = document): WatchPageController | n
     state.castContext = cast.framework.CastContext.getInstance();
     state.castContext.setOptions({
       autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
-      receiverApplicationId:
-        chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID ?? DEFAULT_RECEIVER_APPLICATION_ID,
+      receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
     });
 
     state.remotePlayer = new cast.framework.RemotePlayer();
