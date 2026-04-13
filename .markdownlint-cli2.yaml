@@ -1,6 +1,9 @@
 # markdownlint-cli2 configuration
 # https://github.com/DavidAnson/markdownlint-cli2
 
+ignores:
+  - LICENSE.md
+
 config:
   # Disable line length rule — documentation-heavy repos benefit from
   # prose-style paragraphs rather than hard-wrapped lines
