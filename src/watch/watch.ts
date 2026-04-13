@@ -1,3 +1,4 @@
+// HTTPS-hosted Google sample video used only when no explicit watch URL is provided.
 const DEFAULT_VIDEO_URL =
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 

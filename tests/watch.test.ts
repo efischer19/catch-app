@@ -59,10 +59,21 @@ describe("watch view", () => {
       "?src=javascript:alert(1)&poster=http://poster.test/poster.jpg&title=Yankees%20vs%20Red%20Sox&subtitle=Condensed%20Game",
     );
 
-    expect(media.src).toContain("BigBuckBunny.mp4");
+    expect(media.src).toBe(
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    );
     expect(media.posterUrl).toBeNull();
     expect(media.title).toBe("Yankees vs Red Sox");
     expect(media.subtitle).toBe("Condensed Game");
+  });
+
+  it("rejects additional unsafe media URL schemes", () => {
+    expect(getWatchMedia("?src=data:text/html,evil").src).toBe(
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    );
+    expect(getWatchMedia("?src=file:///tmp/evil.mp4").src).toBe(
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    );
   });
 
   it("loads cast media, exposes controls, and restores browser playback after casting stops", async () => {
