@@ -24,9 +24,11 @@ function setWatchDom(): void {
 describe("watch view", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    let frameId = 0;
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
       callback(0);
-      return 1;
+      frameId += 1;
+      return frameId;
     });
     setWatchDom();
     window.history.replaceState({}, "", "/watch/");

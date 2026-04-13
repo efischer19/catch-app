@@ -25,6 +25,7 @@ interface WatchElements {
 }
 
 export interface WatchPageController {
+  destroy(): void;
   handleCastApiAvailable(isAvailable: boolean): void;
 }
 
@@ -231,6 +232,11 @@ export function initWatchPage(doc: Document = document): WatchPageController | n
   }
 
   return {
+    destroy() {
+      if (window.__onGCastApiAvailable === handleCastApiAvailable) {
+        window.__onGCastApiAvailable = undefined;
+      }
+    },
     handleCastApiAvailable,
   };
 }
