@@ -69,10 +69,20 @@ export function initWatchPage(doc: Document = document): WatchPageController | n
   const restoreLocalPlayback = (): void => {
     const resumeTime = state.lastRemoteTime > 0 ? state.lastRemoteTime : state.lastLocalTime;
     elements.video.currentTime = resumeTime;
-    void elements.video.play().catch(() => {
-      // Browser autoplay restrictions are acceptable here; restoring the time is enough.
-    });
-    announce(elements.statusAnnouncements, "Casting stopped. Playback returned to the browser.");
+    void elements.video
+      .play()
+      .then(() => {
+        announce(
+          elements.statusAnnouncements,
+          "Casting stopped. Playback returned to the browser.",
+        );
+      })
+      .catch(() => {
+        announce(
+          elements.statusAnnouncements,
+          "Casting stopped. Press play in the browser player to resume playback.",
+        );
+      });
   };
 
   const loadRemoteMedia = async (): Promise<void> => {

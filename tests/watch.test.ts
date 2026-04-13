@@ -235,6 +235,7 @@ describe("watch view", () => {
     expect(endCurrentSession).toHaveBeenCalledWith(true);
 
     sessionStateListeners[0]?.({ sessionState: "SESSION_ENDED" });
+    await Promise.resolve();
     expect(video.currentTime).toBe(90);
     expect(document.getElementById("watch-status-announcements")?.textContent).toBe(
       "Casting stopped. Playback returned to the browser.",
