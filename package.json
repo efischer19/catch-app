@@ -14,13 +14,18 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "generate-types": "node ./scripts/generate-types.mjs",
+    "pretypecheck": "npm run generate-types",
+    "prebuild": "npm run generate-types",
+    "pretest": "npm run generate-types"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.2.0",
     "eslint-config-prettier": "^10.1.8",
     "jsdom": "^29.0.2",
+    "json-schema-to-typescript": "^15.0.4",
     "prettier": "^3.8.2",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.58.1",
