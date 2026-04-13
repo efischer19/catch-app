@@ -64,7 +64,7 @@ export function createDataService(config: DataServiceConfig = {}): DataServiceCl
   const fetchGoldJson = async <T extends GoldPayload>(
     fileName: string,
   ): Promise<DataServiceResult<T>> => {
-    const url = `${baseUrl}/${fileName}`;
+    const url = `${baseUrl}/${normalizeFileName(fileName)}`;
     const cached = cache.get(url) as DataServiceSuccess<T> | undefined;
     if (cached) {
       return {
@@ -230,9 +230,11 @@ function parseTimeoutMs(timeoutMs: string | undefined): number | undefined {
     return undefined;
   }
 
-  const parsed = Number.parseInt(timeoutMs, 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  const parsed = Number(timeoutMs);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
 }
+
+const normalizeFileName = (fileName: string): string => fileName.replace(/^\/+/, "");
 
 const dataService = createDataService();
 
