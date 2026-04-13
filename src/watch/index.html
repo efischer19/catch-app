@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Catch watch view — a basic full-screen video player with Google Cast support.">
+  <meta name="theme-color" content="#1a73e8">
+  <title>Catch — Watch</title>
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body class="watch-page">
+  <a href="#watch-main" class="skip-link">Skip to player</a>
+  <p id="watch-status-announcements" class="visually-hidden" aria-live="polite"></p>
+
+  <div class="watch-layout">
+    <header class="watch-header" role="banner">
+      <a class="watch-back-link" href="/">← Back to Catch</a>
+      <div id="cast-button-container" class="cast-button-container" hidden>
+        <google-cast-launcher></google-cast-launcher>
+      </div>
+    </header>
+
+    <main id="watch-main" class="watch-main" role="main">
+      <section class="watch-player-panel" aria-labelledby="watch-title">
+        <div class="watch-player-shell">
+          <video
+            id="watch-video"
+            class="watch-video"
+            controls
+            playsinline
+            preload="metadata"
+          ></video>
+        </div>
+
+        <div class="watch-copy">
+          <h1 id="watch-title">Condensed Game</h1>
+          <p id="watch-subtitle">
+            Open this view with <code>?src=https://…/game.mp4</code> to load a
+            specific condensed game URL for local playback and Chromecast.
+          </p>
+        </div>
+      </section>
+
+      <section
+        id="casting-controls"
+        class="casting-controls"
+        aria-labelledby="casting-controls-heading"
+        hidden
+      >
+        <h2 id="casting-controls-heading">Casting controls</h2>
+        <p id="cast-device-status">Not currently casting.</p>
+
+        <div class="casting-button-row">
+          <button id="cast-play-pause" type="button">Pause</button>
+          <button id="cast-stop" type="button">Stop casting</button>
+        </div>
+
+        <label class="casting-field" for="cast-seek">
+          Seek
+          <input id="cast-seek" type="range" min="0" max="0" step="1" value="0">
+        </label>
+        <p id="cast-timeline" class="casting-timeline">0:00 / 0:00</p>
+
+        <label class="casting-field" for="cast-volume">
+          Volume
+          <input id="cast-volume" type="range" min="0" max="100" step="1" value="100">
+        </label>
+      </section>
+    </main>
+  </div>
+
+  <script async src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+  <script type="module" src="./watch.ts"></script>
+</body>
+</html>

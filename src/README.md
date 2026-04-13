@@ -10,6 +10,10 @@ from the project root to start the Vite dev server with hot reload.
 src/
 ├── index.html          # Main HTML entry point (Vite root)
 ├── main.ts             # TypeScript entry point (theme toggle, interactive behavior)
+├── watch/
+│   ├── index.html      # Full-screen watch view with Chromecast entry point
+│   ├── watch.ts        # Watch page behavior and Cast SDK integration
+│   └── cast.d.ts       # Minimal Google Cast SDK type declarations
 ├── services/
 │   └── data-service.ts # Gold JSON fetch/cache/error handling layer
 ├── vite-env.d.ts       # Vite TypeScript type declarations

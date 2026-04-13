@@ -331,3 +331,144 @@ footer p {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* =========================================================
+   Watch View
+   ========================================================= */
+
+.watch-page {
+  background:
+    radial-gradient(circle at top, rgba(26, 115, 232, 0.2), transparent 35%),
+    #0b1020;
+  color: #f8fafc;
+}
+
+.watch-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.watch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+}
+
+.watch-back-link,
+.watch-back-link:hover {
+  color: #f8fafc;
+}
+
+.cast-button-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  min-height: 3rem;
+  padding: var(--spacing-xs);
+  border: 1px solid rgba(248, 250, 252, 0.2);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.7);
+}
+
+google-cast-launcher {
+  width: 1.5rem;
+  height: 1.5rem;
+  --connected-color: #f8fafc;
+  --disconnected-color: #f8fafc;
+}
+
+.watch-main {
+  width: 100%;
+  max-width: 90rem;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md) var(--spacing-lg);
+}
+
+.watch-player-panel {
+  display: grid;
+  gap: var(--spacing-lg);
+  align-items: start;
+}
+
+.watch-player-shell {
+  background: #000000;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 1.5rem 3rem rgba(15, 23, 42, 0.35);
+}
+
+.watch-video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000000;
+}
+
+.watch-copy {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.watch-copy p,
+.casting-controls p {
+  color: rgba(248, 250, 252, 0.85);
+}
+
+.casting-controls {
+  display: grid;
+  gap: var(--spacing-md);
+  max-width: 32rem;
+  padding: var(--spacing-lg);
+  border: 1px solid rgba(248, 250, 252, 0.15);
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.82);
+}
+
+.casting-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.casting-button-row button,
+.casting-field input {
+  width: 100%;
+}
+
+.casting-button-row button {
+  flex: 1 1 10rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(248, 250, 252, 0.2);
+  border-radius: var(--radius);
+  background: rgba(26, 115, 232, 0.2);
+  color: #f8fafc;
+  cursor: pointer;
+}
+
+.casting-button-row button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.casting-field {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.casting-timeline {
+  margin-bottom: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 64rem) {
+  .watch-header {
+    padding: var(--spacing-lg);
+  }
+
+  .watch-player-panel {
+    grid-template-columns: minmax(0, 1.8fr) minmax(20rem, 1fr);
+  }
+}
