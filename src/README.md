@@ -14,6 +14,10 @@ src/
 ├── assets/
 │   ├── styles.css      # Base stylesheet (CSS custom properties, responsive layout)
 │   └── favicon.svg     # Placeholder favicon
+├── schema/
+│   └── schema.json     # Committed JSON Schema contract synced from catch-data
+├── types/
+│   └── generated-smoke.ts # Compile-time smoke test for generated schema types
 └── README.md           # This file — documents structure and conventions
 ```
 
@@ -51,6 +55,9 @@ src/
   interactive enhancements (e.g., dark mode toggle).
 - **Accessibility** — Interactive elements include proper ARIA attributes and
   keyboard support.
+- **Schema-derived types** — `npm run generate-types` converts
+  `src/schema/schema.json` into the ignored `src/types/generated.ts` file used
+  by compile-time checks.
 
 ## Accessibility Testing
 

@@ -73,10 +73,24 @@ npm run dev
 | `npm run build` | Type-check and build optimized production output to `dist/` |
 | `npm run preview` | Preview the production build locally |
 | `npm run lint` | Run ESLint on all TypeScript files |
+| `npm run generate-types` | Generate strict TypeScript interfaces from `src/schema/schema.json` |
 | `npm run typecheck` | Run the TypeScript compiler in check-only mode |
 | `npm test` | Run Vitest test suite |
 | `npm run format` | Format code with Prettier |
 | `npm run format:check` | Check code formatting without modifying files |
+
+### Schema-to-Type Workflow
+
+- `src/schema/schema.json` is the committed contract synced from `catch-data`.
+- `src/types/generated.ts` is generated at build/test/typecheck time and is
+  intentionally ignored in Git to avoid merge conflicts.
+- Run `npm run generate-types` after schema changes to refresh the generated
+  interfaces locally.
+- `npm run typecheck`, `npm run build`, and `npm test` all generate the types
+  automatically before running.
+- `src/types/generated-smoke.ts` provides a compile-time smoke test that imports
+  the generated interfaces and asserts nullable fields stay typed as `| null`
+  instead of optional properties.
 
 ### Quality Checks
 

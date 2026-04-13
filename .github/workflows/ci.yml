@@ -112,6 +112,10 @@ jobs:
         if: steps.check-pkg.outputs.found == 'true'
         run: npm ci
 
+      - name: Generate TypeScript types from schema
+        if: steps.check-pkg.outputs.found == 'true'
+        run: npm run generate-types
+
       - name: Lint (ESLint)
         if: steps.check-pkg.outputs.found == 'true'
         run: npm run lint

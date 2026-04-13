@@ -7,6 +7,6 @@ export default tseslint.config(
   ...tseslint.configs.strict,
   eslintConfigPrettier,
   {
-    ignores: ["dist/", "node_modules/", "site/", "public/"],
+    ignores: ["dist/", "node_modules/", "site/", "public/", "src/types/generated.ts"],
   },
 );

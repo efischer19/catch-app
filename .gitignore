@@ -92,3 +92,6 @@ site/
 # Repomix
 # =============================================================================
 repomix-output.xml
+
+# Generated TypeScript types
+src/types/generated.ts
