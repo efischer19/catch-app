@@ -1,67 +1,59 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Catch — MLB schedule and boxscore PWA with Chromecast casting support.">
-  <meta name="theme-color" content="#1a73e8">
-  <title>Catch</title>
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="assets/styles.css">
-</head>
-<body>
-  <a href="#main-content" class="skip-link">Skip to main content</a>
-  <p id="status-announcements" class="visually-hidden" aria-live="polite"></p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Catch — MLB schedule and boxscore PWA with Chromecast casting support."
+    />
+    <meta name="theme-color" content="#1a73e8" />
+    <title>Catch</title>
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <p id="status-announcements" class="visually-hidden" aria-live="polite"></p>
 
-  <div class="page-wrapper">
-    <header role="banner">
-      <div class="header-content">
-        <h1>Catch</h1>
-        <nav role="navigation" aria-label="Main navigation">
-          <ul>
-            <li><a href="#schedule-heading">Schedule</a></li>
-            <li><a href="#about-heading">About</a></li>
-          </ul>
-        </nav>
-        <button
-          id="theme-toggle"
-          class="theme-toggle"
-          type="button"
-          aria-pressed="false"
-          aria-label="Toggle dark mode"
-        >
-          <span class="icon" aria-hidden="true">🌙</span>
-          <span class="label">Dark mode</span>
-        </button>
-      </div>
-    </header>
+    <div class="page-wrapper">
+      <header role="banner">
+        <div class="header-content">
+          <h1>Catch</h1>
+          <nav role="navigation" aria-label="Main navigation">
+            <ul class="main-nav">
+              <li><a href="/" data-nav-link="true">Today's Slate</a></li>
+              <li><a href="/teams" data-nav-link="true">Teams</a></li>
+            </ul>
+          </nav>
+          <button
+            id="theme-toggle"
+            class="theme-toggle"
+            type="button"
+            aria-pressed="false"
+            aria-label="Toggle dark mode"
+          >
+            <span class="icon" aria-hidden="true">🌙</span>
+            <span class="label">Dark mode</span>
+          </button>
+        </div>
+      </header>
 
-    <main id="main-content" role="main">
-      <section aria-labelledby="schedule-heading">
-        <h2 id="schedule-heading">Schedule</h2>
+      <main id="main-content" role="main">
+        <div id="app-view"></div>
+      </main>
+
+      <footer role="contentinfo">
         <p>
-          Today's MLB schedule will appear here. Select a game to view the
-          live boxscore or cast it to a nearby Chromecast device.
+          &copy; 2025 catch-app contributors. Licensed under
+          <a href="https://github.com/efischer19/catch-app/blob/main/LICENSE.md"
+            >GPL-3.0-or-later</a
+          >.
         </p>
-      </section>
+      </footer>
+    </div>
 
-      <section aria-labelledby="about-heading">
-        <h2 id="about-heading">About</h2>
-        <p>
-          Catch is a progressive web app for browsing MLB schedules and
-          boxscores. Game data is sourced from the
-          <a href="https://github.com/efischer19/catch-data">catch-data</a>
-          companion repository and delivered as static JSON from a CDN.
-        </p>
-      </section>
-    </main>
-
-    <footer role="contentinfo">
-      <p>&copy; 2025 catch-app contributors. Licensed under <a href="https://github.com/efischer19/catch-app/blob/main/LICENSE.md">GPL-3.0-or-later</a>.</p>
-    </footer>
-  </div>
-
-  <script type="module" src="main.ts"></script>
-</body>
+    <script type="module" src="main.ts"></script>
+  </body>
 </html>

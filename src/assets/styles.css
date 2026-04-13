@@ -26,12 +26,13 @@
   --color-code-bg: #f0f0f0;
   --color-focus: #1a73e8;
 
-  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
-    Arial, sans-serif;
-  --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
-    monospace;
+  --font-body:
+    system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --font-mono:
+    ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
 
-  --max-width: 48rem;
+  --max-width: 72rem;
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
@@ -154,7 +155,9 @@ select {
 
 h1,
 h2,
-h3 {
+h3,
+h4,
+h5 {
   line-height: 1.3;
   text-wrap: balance;
 }
@@ -171,6 +174,12 @@ h2 {
 
 h3 {
   font-size: 1.125rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+h4,
+h5 {
+  font-size: 1rem;
   margin-bottom: var(--spacing-xs);
 }
 
@@ -232,12 +241,28 @@ header {
   flex-wrap: wrap;
 }
 
-nav ul {
+.main-nav {
   display: flex;
-  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
   list-style: none;
   padding: 0;
   margin: 0;
+}
+
+.main-nav a {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  text-decoration: none;
+}
+
+.main-nav a.is-active {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  font-weight: 600;
 }
 
 main {
@@ -246,10 +271,6 @@ main {
   margin: 0 auto;
   padding: var(--spacing-lg) var(--spacing-md);
   width: 100%;
-}
-
-section {
-  margin-bottom: var(--spacing-xl);
 }
 
 footer {
@@ -263,6 +284,97 @@ footer {
 footer p {
   max-width: var(--max-width);
   margin: 0 auto;
+}
+
+.app-layout {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.view-panel {
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.view-panel p:last-child {
+  margin-bottom: 0;
+}
+
+/* =========================================================
+   Team Selector
+   ========================================================= */
+
+.team-selector {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.team-selector__title,
+.team-selector__league-heading,
+.team-selector__division-heading {
+  margin-bottom: 0;
+}
+
+.team-selector__league {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.team-selector__divisions {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.team-selector__division {
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.team-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-sm) 0 0;
+  display: grid;
+  gap: var(--spacing-xs);
+}
+
+.team-list li {
+  margin: 0;
+}
+
+.team-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.team-link:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.team-link--active {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-bg));
+  font-weight: 600;
+}
+
+.team-link__abbr {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 700;
 }
 
 /* =========================================================
@@ -282,7 +394,9 @@ footer p {
   font-size: 0.875rem;
   font-weight: 500;
   line-height: 1;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
 }
 
 .theme-toggle:hover {
@@ -292,26 +406,6 @@ footer p {
 .theme-toggle .icon {
   font-size: 1.125rem;
   line-height: 1;
-}
-
-/* =========================================================
-   Feature List
-   ========================================================= */
-
-.feature-list {
-  display: grid;
-  gap: var(--spacing-md);
-  padding: 0;
-  list-style: none;
-  margin-bottom: var(--spacing-md);
-}
-
-.feature-list li {
-  padding: var(--spacing-md);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  margin-bottom: 0;
 }
 
 /* =========================================================
@@ -327,7 +421,19 @@ footer p {
     font-size: 1.5rem;
   }
 
-  .feature-list {
-    grid-template-columns: repeat(2, 1fr);
+  .team-selector__divisions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .app-layout--teams {
+    grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .team-selector {
+    position: sticky;
+    top: var(--spacing-lg);
   }
 }
