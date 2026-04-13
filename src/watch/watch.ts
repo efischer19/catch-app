@@ -45,6 +45,7 @@ export function initWatchPage(doc: Document = document): WatchPageController | n
     lastLocalTime: 0,
     lastRemoteTime: 0,
     media,
+    pendingSeekPreviewFrame: 0,
   };
 
   const syncRemoteUi = (): void => {
@@ -187,7 +188,14 @@ export function initWatchPage(doc: Document = document): WatchPageController | n
   elements.castSeek.addEventListener("input", () => {
     const duration = Number(elements.castSeek.max);
     const currentTime = clampTime(Number(elements.castSeek.value), duration);
-    elements.castTimeline.textContent = formatTimeline(currentTime, duration);
+    if (state.pendingSeekPreviewFrame) {
+      cancelAnimationFrame(state.pendingSeekPreviewFrame);
+    }
+
+    state.pendingSeekPreviewFrame = requestAnimationFrame(() => {
+      elements.castTimeline.textContent = formatTimeline(currentTime, duration);
+      state.pendingSeekPreviewFrame = 0;
+    });
   });
   elements.castSeek.addEventListener("change", () => {
     if (!state.remotePlayer || !state.remotePlayerController) {
@@ -354,7 +362,7 @@ function sanitizeHttpsUrl(value: string | null): string | null {
 
 function getTextParam(params: URLSearchParams, key: string): string | null {
   const value = params.get(key)?.trim();
-  return value ? value : null;
+  return value || null;
 }
 
 function announce(element: HTMLElement, message: string): void {
