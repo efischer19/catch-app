@@ -847,7 +847,7 @@ function getGameDetails(doc: Document, teamId: number, game: GoldGameSummary): G
   const matchupLabel = `${matchupPrefix} ${opponent.name}`;
   const boxscoreHref = game.status === "Final" ? `/boxscore/${game.game_pk}` : null;
   const watchHref = game.status === "Final" && game.condensed_game_url
-    ? createWatchHref(game)
+    ? createWatchHref(game.condensed_game_url, game)
     : null;
 
   if (game.status === "Scheduled") {
@@ -943,9 +943,9 @@ function createAccessibleScore(
   return wrapper;
 }
 
-function createWatchHref(game: GoldGameSummary): string {
+function createWatchHref(condensedGameUrl: string, game: GoldGameSummary): string {
   const params = new URLSearchParams({
-    src: game.condensed_game_url ?? "",
+    src: condensedGameUrl,
     subtitle: "Condensed Game",
     title: `${game.away_team.name} at ${game.home_team.name}`,
   });
@@ -967,7 +967,9 @@ function formatLastUpdated(value: string | null): string {
 
 function getCalendarDateKey(value: string): string {
   const date = new Date(value);
-  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate(),
+  ).padStart(2, "0")}`;
 }
 
 function parseRoute(pathname: string): AppRoute {

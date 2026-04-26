@@ -222,7 +222,10 @@ describe("team schedule view", () => {
       'a[href^="/watch/?"]',
     );
     expect(watchLink?.textContent).toBe("Watch Condensed Game");
-    expect(watchLink?.href).toContain("src=https%3A%2F%2Fmedia.test%2Fyankees-redsox.mp4");
+    const watchUrl = new URL(watchLink?.href ?? "http://localhost/");
+    expect(watchUrl.searchParams.get("src")).toBe(
+      "https://media.test/yankees-redsox.mp4",
+    );
 
     boxscoreLink?.dispatchEvent(
       new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }),
@@ -263,7 +266,9 @@ describe("team schedule view", () => {
       );
     });
 
-    const retryButton = document.querySelector<HTMLButtonElement>("button.schedule-action");
+    const retryButton = document.querySelector<HTMLButtonElement>(
+      ".schedule-error button.schedule-action",
+    );
     expect(retryButton?.textContent).toBe("Retry");
 
     retryButton?.click();
