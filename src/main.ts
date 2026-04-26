@@ -66,6 +66,12 @@ const LAST_UPDATED_FORMATTER = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
   timeStyle: "short",
 });
+const BOXSCORE_TABLE_COLUMNS = [
+  { label: "Team", title: null },
+  { label: "R", title: "Runs" },
+  { label: "H", title: "Hits" },
+  { label: "E", title: "Errors" },
+] as const;
 
 const navRouteMatchesPath = (href: string, pathname: string): boolean =>
   href === "/"
@@ -1441,21 +1447,16 @@ function createBoxscoreLineTable(
 
   const thead = doc.createElement("thead");
   const headerRow = doc.createElement("tr");
-  for (const [headingText, title] of [
-    ["Team", null],
-    ["R", "Runs"],
-    ["H", "Hits"],
-    ["E", "Errors"],
-  ] as const) {
+  for (const { label, title } of BOXSCORE_TABLE_COLUMNS) {
     const heading = doc.createElement("th");
     heading.scope = "col";
     if (title) {
       const abbreviation = doc.createElement("abbr");
       abbreviation.title = title;
-      abbreviation.textContent = headingText;
+      abbreviation.textContent = label;
       heading.append(abbreviation);
     } else {
-      heading.textContent = headingText;
+      heading.textContent = label;
     }
     headerRow.append(heading);
   }
