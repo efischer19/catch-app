@@ -1434,10 +1434,6 @@ function createBoxscoreLineTable(
 
   const table = doc.createElement("table");
   table.className = "schedule-table boxscore-table";
-  table.setAttribute(
-    "aria-label",
-    `${game.away_team.name}: ${boxscore.away_r} runs, ${boxscore.away_h} hits, ${boxscore.away_e} errors. ${game.home_team.name}: ${boxscore.home_r} runs, ${boxscore.home_h} hits, ${boxscore.home_e} errors.`,
-  );
 
   const caption = doc.createElement("caption");
   caption.className = "visually-hidden";
