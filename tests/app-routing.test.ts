@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initRouter } from "../src/main";
+import type { DataServiceClient } from "../src/services/data-service";
+import type { GoldTeamSchedule } from "../src/types/generated";
 
 const appShell = `
   <p id="status-announcements"></p>
@@ -17,6 +19,29 @@ const appShell = `
   </header>
   <main id="main-content"><div id="app-view"></div></main>
 `;
+
+const yankeesSchedule: GoldTeamSchedule = {
+  games: [],
+  last_updated: "2026-04-13T19:05:00Z",
+  season_year: 2026,
+  team_abbreviation: "NYY",
+  team_id: 147,
+  team_name: "New York Yankees",
+};
+
+function createDataService(schedule: GoldTeamSchedule = yankeesSchedule): DataServiceClient {
+  return {
+    clearCache: vi.fn(),
+    getTeamSchedule: vi.fn().mockResolvedValue({
+      ok: true,
+      status: "success",
+      data: schedule,
+      fromCache: false,
+      lastUpdated: schedule.last_updated ?? null,
+    }),
+    getUpcomingGames: vi.fn(),
+  };
+}
 
 describe("app routing", () => {
   let cleanup: (() => void) | undefined;
@@ -36,7 +61,9 @@ describe("app routing", () => {
   it("renders the Yankees schedule when loading the team route directly", () => {
     window.history.pushState({}, "", "/team/147");
 
-    cleanup = initRouter(document, window);
+    cleanup = initRouter(document, window, {
+      dataService: createDataService(),
+    });
 
     expect(document.querySelector("h2")?.textContent).toBe(
       "New York Yankees schedule",
@@ -49,7 +76,9 @@ describe("app routing", () => {
   });
 
   it("navigates between top-level views without a full page reload", () => {
-    cleanup = initRouter(document, window);
+    cleanup = initRouter(document, window, {
+      dataService: createDataService(),
+    });
     const pushStateSpy = vi.spyOn(window.history, "pushState");
     const teamsLink = document.querySelector<HTMLAnchorElement>(
       'a[href="/team/147"]',
@@ -69,7 +98,9 @@ describe("app routing", () => {
   });
 
   it("supports arrow-key navigation and Enter selection in the team selector", () => {
-    cleanup = initRouter(document, window);
+    cleanup = initRouter(document, window, {
+      dataService: createDataService(),
+    });
 
     const oriolesLink = document.querySelector<HTMLAnchorElement>(
       'a[href="/team/110"]',

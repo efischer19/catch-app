@@ -5,17 +5,47 @@ import {
   type League,
   type Team,
 } from "./teams";
+import { DataService, type DataServiceClient } from "./services/data-service";
+import type { GoldGameSummary, GoldTeamInfo, GoldTeamSchedule } from "./types/generated";
 
 type AppRoute =
   | { view: "slate" }
   | { view: "teams" }
   | { view: "team"; team: Team }
+  | { view: "boxscore"; gamePk: number }
   | { view: "team-not-found" }
   | { view: "not-found" };
+
+interface RouterOptions {
+  dataService?: DataServiceClient;
+}
+
+interface RouterContext {
+  dataService: DataServiceClient;
+  renderToken: number;
+}
 
 const LEAGUES: readonly League[] = ["AL", "NL"];
 const DIVISIONS: readonly Division[] = ["East", "Central", "West"];
 const TEAM_ROUTE_PATTERN = /^\/team\/(\d+)$/;
+const BOXSCORE_ROUTE_PATTERN = /^\/boxscore\/(\d+)$/;
+const MONTH_FORMATTER = new Intl.DateTimeFormat(undefined, {
+  month: "long",
+  year: "numeric",
+});
+const GAME_DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+});
+const TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
+  hour: "numeric",
+  minute: "2-digit",
+});
+const LAST_UPDATED_FORMATTER = new Intl.DateTimeFormat(undefined, {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
 
 const navRouteMatchesPath = (href: string, pathname: string): boolean =>
   href === "/"
@@ -31,8 +61,14 @@ document.addEventListener("DOMContentLoaded", () => {
 export function initRouter(
   doc: Document = document,
   win: Window = window,
+  options: RouterOptions = {},
 ): () => void {
-  renderRoute(doc, win, false);
+  const context: RouterContext = {
+    dataService: options.dataService ?? DataService,
+    renderToken: 0,
+  };
+
+  renderRoute(doc, win, false, context);
 
   const handleClick = (event: MouseEvent): void => {
     if (
@@ -56,7 +92,13 @@ export function initRouter(
     if (url.origin !== win.location.origin || !isAppRoute(url.pathname)) return;
 
     event.preventDefault();
-    navigateTo(url.pathname, doc, win, url.pathname.startsWith("/team/"));
+    navigateTo(
+      url.pathname,
+      doc,
+      win,
+      context,
+      url.pathname.startsWith("/team/") || url.pathname.startsWith("/boxscore/"),
+    );
   };
 
   const handleKeydown = (event: KeyboardEvent): void => {
@@ -97,7 +139,7 @@ export function initRouter(
         event.preventDefault();
         const href = target.getAttribute("href");
         if (href) {
-          navigateTo(href, doc, win, true);
+          navigateTo(href, doc, win, context, true);
         }
         return;
       }
@@ -112,7 +154,7 @@ export function initRouter(
   };
 
   const handlePopstate = (): void => {
-    renderRoute(doc, win, false);
+    renderRoute(doc, win, false, context);
   };
 
   doc.addEventListener("click", handleClick);
@@ -130,6 +172,7 @@ function navigateTo(
   pathname: string,
   doc: Document,
   win: Window,
+  context: RouterContext,
   focusHeading: boolean,
 ): void {
   const nextPath = normalizePathname(pathname);
@@ -137,22 +180,40 @@ function navigateTo(
     win.history.pushState({}, "", nextPath);
   }
 
-  renderRoute(doc, win, focusHeading);
+  renderRoute(doc, win, focusHeading, context);
 }
 
-function renderRoute(doc: Document, win: Window, focusHeading: boolean): void {
+function renderRoute(
+  doc: Document,
+  win: Window,
+  focusHeading: boolean,
+  context: RouterContext,
+): void {
   const appView = doc.getElementById("app-view");
   if (!(appView instanceof HTMLElement)) return;
 
   const pathname = normalizePathname(win.location.pathname);
   const route = parseRoute(pathname);
+  const renderToken = ++context.renderToken;
+  const view = createRouteView(doc, route);
 
   updateMainNavigation(doc, pathname);
   updateDocumentTitle(doc, route);
-  appView.replaceChildren(createRouteView(doc, route));
+  appView.replaceChildren(view);
 
   if (focusHeading) {
     appView.querySelector<HTMLElement>("[data-view-heading='true']")?.focus();
+  }
+
+  if (route.view === "team") {
+    void loadTeamScheduleView(
+      view,
+      route.team,
+      context.dataService,
+      () =>
+        context.renderToken === renderToken &&
+        normalizePathname(win.location.pathname) === pathname,
+    );
   }
 }
 
@@ -183,6 +244,9 @@ function updateDocumentTitle(doc: Document, route: AppRoute): void {
     case "team":
       doc.title = `Catch | ${route.team.name}`;
       break;
+    case "boxscore":
+      doc.title = "Catch | Boxscore";
+      break;
     case "team-not-found":
       doc.title = "Catch | Team not found";
       break;
@@ -200,6 +264,8 @@ function createRouteView(doc: Document, route: AppRoute): HTMLElement {
       return createTeamsView(doc);
     case "team":
       return createTeamScheduleView(doc, route.team);
+    case "boxscore":
+      return createBoxscoreView(doc, route.gamePk);
     case "team-not-found":
       return createMissingTeamView(doc);
     case "not-found":
@@ -227,12 +293,27 @@ function createTeamsView(doc: Document): HTMLElement {
 }
 
 function createTeamScheduleView(doc: Document, team: Team): HTMLElement {
-  return createTeamLayout(
-    doc,
-    `${team.name} schedule`,
-    `Viewing the ${team.name} (${team.abbreviation}) schedule. Team schedule data will appear here in a future update.`,
-    team.id,
+  const layout = doc.createElement("div");
+  layout.className = "app-layout app-layout--teams";
+
+  const content = createViewSection(doc, `${team.name} schedule`);
+  content.classList.add("view-panel", "team-schedule-view");
+  content.dataset.teamScheduleView = "true";
+  renderScheduleLoading(content, doc);
+
+  layout.append(createTeamSelector(doc, team.id), content);
+  return layout;
+}
+
+function createBoxscoreView(doc: Document, gamePk: number): HTMLElement {
+  const section = createViewSection(doc, "Boxscore");
+  section.append(
+    createParagraph(
+      doc,
+      `Boxscore details for game ${gamePk} will appear here in a future update.`,
+    ),
   );
+  return section;
 }
 
 function createMissingTeamView(doc: Document): HTMLElement {
@@ -253,6 +334,320 @@ function createNotFoundView(doc: Document): HTMLElement {
     ),
   );
   return section;
+}
+
+async function loadTeamScheduleView(
+  view: HTMLElement,
+  team: Team,
+  dataService: DataServiceClient,
+  isCurrentView: () => boolean,
+  showLoadingState = false,
+): Promise<void> {
+  const scheduleView = view.querySelector<HTMLElement>("[data-team-schedule-view='true']");
+  if (!scheduleView) return;
+
+  if (showLoadingState) {
+    renderScheduleLoading(scheduleView, view.ownerDocument);
+  }
+  const result = await dataService.getTeamSchedule(team.id);
+
+  if (!isCurrentView()) {
+    return;
+  }
+
+  if (result.ok) {
+    renderScheduleSuccess(scheduleView, view.ownerDocument, team, result.data, result.lastUpdated);
+    return;
+  }
+
+  renderScheduleError(
+    scheduleView,
+    view.ownerDocument,
+    result.error.message,
+    () => {
+      void loadTeamScheduleView(view, team, dataService, isCurrentView, true);
+    },
+  );
+}
+
+function renderScheduleLoading(section: HTMLElement, doc: Document): void {
+  section.setAttribute("aria-busy", "true");
+
+  const status = doc.createElement("p");
+  status.className = "schedule-state";
+  status.setAttribute("role", "status");
+  status.textContent = "Loading schedule…";
+
+  setSectionBody(section, status);
+}
+
+function renderScheduleError(
+  section: HTMLElement,
+  doc: Document,
+  message: string,
+  retry: () => void,
+): void {
+  section.removeAttribute("aria-busy");
+
+  const alert = doc.createElement("div");
+  alert.className = "schedule-error";
+  alert.setAttribute("role", "alert");
+
+  const copy = createParagraph(doc, message);
+  copy.className = "schedule-error__message";
+
+  const retryButton = doc.createElement("button");
+  retryButton.type = "button";
+  retryButton.className = "schedule-action schedule-action--button";
+  retryButton.textContent = "Retry";
+  retryButton.addEventListener("click", retry);
+
+  alert.append(copy, retryButton);
+  setSectionBody(section, alert);
+}
+
+function renderScheduleSuccess(
+  section: HTMLElement,
+  doc: Document,
+  team: Team,
+  schedule: GoldTeamSchedule,
+  lastUpdated: string | null,
+): void {
+  section.removeAttribute("aria-busy");
+
+  const meta = doc.createElement("p");
+  meta.className = "schedule-meta";
+  meta.textContent = `Season ${schedule.season_year} · Last updated ${formatLastUpdated(lastUpdated)}`;
+
+  const games = sortGames(schedule.games ?? []);
+  if (games.length === 0) {
+    setSectionBody(
+      section,
+      meta,
+      createParagraph(doc, "No regular-season games are available yet."),
+    );
+    return;
+  }
+
+  const groupedGames = groupGamesByMonth(games);
+  const gamesPerDate = countGamesByDate(games);
+  const scheduleGroups = doc.createElement("div");
+  scheduleGroups.className = "schedule-groups";
+
+  for (const group of groupedGames) {
+    scheduleGroups.append(createScheduleMonthSection(doc, team, group, gamesPerDate));
+  }
+
+  setSectionBody(section, meta, scheduleGroups);
+}
+
+function createScheduleMonthSection(
+  doc: Document,
+  team: Team,
+  group: ScheduleMonthGroup,
+  gamesPerDate: Map<string, number>,
+): HTMLElement {
+  const section = doc.createElement("section");
+  section.className = "schedule-month";
+
+  const heading = doc.createElement("h3");
+  heading.className = "schedule-month__heading";
+  heading.textContent = group.label;
+
+  const cards = doc.createElement("div");
+  cards.className = "schedule-cards";
+  for (const game of group.games) {
+    cards.append(createScheduleCard(doc, team, game, gamesPerDate));
+  }
+
+  const tableWrapper = doc.createElement("div");
+  tableWrapper.className = "schedule-table-wrapper";
+  tableWrapper.append(createScheduleTable(doc, team, group, gamesPerDate));
+
+  section.append(heading, cards, tableWrapper);
+  return section;
+}
+
+function createScheduleCard(
+  doc: Document,
+  team: Team,
+  game: GoldGameSummary,
+  gamesPerDate: Map<string, number>,
+): HTMLElement {
+  const details = getGameDetails(doc, team.id, game);
+  const article = doc.createElement("article");
+  article.className = "schedule-card";
+
+  const title = doc.createElement("h4");
+  title.className = "schedule-card__title";
+  title.textContent = `${details.dateLabel} · ${details.matchupLabel}`;
+
+  const meta = doc.createElement("p");
+  meta.className = "schedule-card__meta";
+  meta.append(
+    createStatusBadge(doc, details.statusVariant, details.statusLabel),
+    createInlineText(doc, details.resultLabel),
+  );
+
+  const subtitle = doc.createElement("p");
+  subtitle.className = "schedule-card__subtitle";
+  subtitle.textContent = `${details.homeAwayLabel} · ${details.opponent.name}`;
+
+  const body = doc.createElement("div");
+  body.className = "schedule-card__body";
+  if (shouldShowGameLabel(game, gamesPerDate)) {
+    body.append(createGameLabel(doc, game.game_number));
+  }
+
+  if (details.score) {
+    const score = doc.createElement("p");
+    score.className = "schedule-card__score";
+    score.append(details.score);
+    body.append(score);
+  }
+
+  if (details.note) {
+    const note = createParagraph(doc, details.note);
+    note.className = "schedule-note";
+    body.append(note);
+  }
+
+  const actions = createScheduleActions(doc, details);
+  if (actions.childElementCount > 0) {
+    body.append(actions);
+  }
+
+  article.append(title, subtitle, meta, body);
+  return article;
+}
+
+function createScheduleTable(
+  doc: Document,
+  team: Team,
+  group: ScheduleMonthGroup,
+  gamesPerDate: Map<string, number>,
+): HTMLElement {
+  const table = doc.createElement("table");
+  table.className = "schedule-table";
+
+  const caption = doc.createElement("caption");
+  caption.className = "visually-hidden";
+  caption.textContent = `${group.label} schedule`;
+
+  const thead = doc.createElement("thead");
+  const headerRow = doc.createElement("tr");
+  for (const headingText of ["Date", "Opponent", "Status", "Result", "Actions"]) {
+    const heading = doc.createElement("th");
+    heading.scope = "col";
+    heading.textContent = headingText;
+    headerRow.append(heading);
+  }
+  thead.append(headerRow);
+
+  const tbody = doc.createElement("tbody");
+  for (const game of group.games) {
+    const details = getGameDetails(doc, team.id, game);
+    const row = doc.createElement("tr");
+
+    const dateCell = doc.createElement("th");
+    dateCell.scope = "row";
+    dateCell.className = "schedule-table__date";
+    dateCell.append(createInlineText(doc, details.dateLabel));
+    if (shouldShowGameLabel(game, gamesPerDate)) {
+      dateCell.append(doc.createTextNode(" "), createGameLabel(doc, game.game_number));
+    }
+
+    const opponentCell = doc.createElement("td");
+    opponentCell.textContent = `${details.homeAwayLabel} · ${details.opponent.name}`;
+
+    const statusCell = doc.createElement("td");
+    statusCell.append(createStatusBadge(doc, details.statusVariant, details.statusLabel));
+
+    const resultCell = doc.createElement("td");
+    resultCell.append(createInlineText(doc, details.resultLabel));
+    if (details.score) {
+      resultCell.append(doc.createTextNode(" "), details.score);
+    }
+    if (details.note) {
+      const note = doc.createElement("span");
+      note.className = "schedule-note schedule-note--inline";
+      note.textContent = details.note;
+      resultCell.append(doc.createTextNode(" "), note);
+    }
+
+    const actionsCell = doc.createElement("td");
+    actionsCell.append(createScheduleActions(doc, details));
+
+    row.append(dateCell, opponentCell, statusCell, resultCell, actionsCell);
+    tbody.append(row);
+  }
+
+  table.append(caption, thead, tbody);
+  return table;
+}
+
+function createScheduleActions(doc: Document, details: GameDetails): HTMLElement {
+  const actions = doc.createElement("div");
+  actions.className = "schedule-actions";
+
+  if (details.boxscoreHref) {
+    actions.append(createActionLink(doc, details.boxscoreHref, "Boxscore"));
+  }
+
+  if (details.watchHref) {
+    actions.append(
+      createActionLink(doc, details.watchHref, "Watch Condensed Game", {
+        external: true,
+      }),
+    );
+  }
+
+  return actions;
+}
+
+function createActionLink(
+  doc: Document,
+  href: string,
+  text: string,
+  options: { external?: boolean } = {},
+): HTMLAnchorElement {
+  const link = doc.createElement("a");
+  link.href = href;
+  link.className = "schedule-action";
+  link.textContent = text;
+  if (options.external) {
+    link.rel = "noopener noreferrer";
+  }
+  return link;
+}
+
+function createStatusBadge(
+  doc: Document,
+  variant: GameDetails["statusVariant"],
+  text: string,
+): HTMLElement {
+  const badge = doc.createElement("span");
+  badge.className = `schedule-status schedule-status--${variant}`;
+  badge.textContent = text;
+  return badge;
+}
+
+function createGameLabel(doc: Document, gameNumber: number | undefined): HTMLElement {
+  const label = doc.createElement("span");
+  label.className = "schedule-game-label";
+  label.textContent =
+    typeof gameNumber === "number" ? `Game ${gameNumber}` : "Doubleheader";
+  return label;
+}
+
+function createInlineText(doc: Document, text: string): Text {
+  return doc.createTextNode(text);
+}
+
+function setSectionBody(section: HTMLElement, ...nodes: Node[]): void {
+  const heading = section.querySelector<HTMLElement>("[data-view-heading='true']");
+  if (!heading) return;
+  section.replaceChildren(heading, ...nodes);
 }
 
 function createTeamLayout(
@@ -371,6 +766,212 @@ function createTeamSelector(
   return nav;
 }
 
+interface ScheduleMonthGroup {
+  label: string;
+  games: GoldGameSummary[];
+}
+
+interface GameDetails {
+  boxscoreHref: string | null;
+  dateLabel: string;
+  homeAwayLabel: "Home" | "Away";
+  matchupLabel: string;
+  note: string | null;
+  opponent: GoldTeamInfo;
+  resultLabel: string;
+  score: HTMLElement | null;
+  statusLabel: string;
+  statusVariant: "final" | "in-progress" | "postponed" | "scheduled" | "default";
+  watchHref: string | null;
+}
+
+function sortGames(games: GoldGameSummary[]): GoldGameSummary[] {
+  return [...games].sort((left, right) => {
+    const dateDelta = Date.parse(left.date) - Date.parse(right.date);
+    if (dateDelta !== 0) {
+      return dateDelta;
+    }
+
+    return (left.game_number ?? 0) - (right.game_number ?? 0);
+  });
+}
+
+function groupGamesByMonth(games: GoldGameSummary[]): ScheduleMonthGroup[] {
+  const groups = new Map<string, ScheduleMonthGroup>();
+
+  for (const game of games) {
+    const date = new Date(game.date);
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    const existing = groups.get(key);
+
+    if (existing) {
+      existing.games.push(game);
+      continue;
+    }
+
+    groups.set(key, {
+      label: MONTH_FORMATTER.format(date),
+      games: [game],
+    });
+  }
+
+  return [...groups.values()];
+}
+
+function countGamesByDate(games: GoldGameSummary[]): Map<string, number> {
+  const counts = new Map<string, number>();
+
+  for (const game of games) {
+    const dateKey = getCalendarDateKey(game.date);
+    counts.set(dateKey, (counts.get(dateKey) ?? 0) + 1);
+  }
+
+  return counts;
+}
+
+function shouldShowGameLabel(
+  game: GoldGameSummary,
+  gamesPerDate: Map<string, number>,
+): boolean {
+  return (
+    typeof game.game_number === "number" &&
+    (gamesPerDate.get(getCalendarDateKey(game.date)) ?? 0) > 1
+  );
+}
+
+function getGameDetails(doc: Document, teamId: number, game: GoldGameSummary): GameDetails {
+  const isHome = game.home_team.id === teamId;
+  const opponent = isHome ? game.away_team : game.home_team;
+  const compactDate = GAME_DATE_FORMATTER.format(new Date(game.date));
+  const matchupPrefix = isHome ? "vs" : "at";
+  const matchupLabel = `${matchupPrefix} ${opponent.name}`;
+  const boxscoreHref = game.status === "Final" ? `/boxscore/${game.game_pk}` : null;
+  const watchHref = game.status === "Final" && game.condensed_game_url
+    ? createWatchHref(game.condensed_game_url, game)
+    : null;
+
+  if (game.status === "Scheduled") {
+    return {
+      boxscoreHref: null,
+      dateLabel: compactDate,
+      homeAwayLabel: isHome ? "Home" : "Away",
+      matchupLabel,
+      note: null,
+      opponent,
+      resultLabel: TIME_FORMATTER.format(new Date(game.date)),
+      score: null,
+      statusLabel: "Scheduled",
+      statusVariant: "scheduled",
+      watchHref: null,
+    };
+  }
+
+  if (game.status === "Postponed") {
+    return {
+      boxscoreHref: null,
+      dateLabel: compactDate,
+      homeAwayLabel: isHome ? "Home" : "Away",
+      matchupLabel,
+      note: null,
+      opponent,
+      resultLabel: "No start time",
+      score: null,
+      statusLabel: "Postponed",
+      statusVariant: "postponed",
+      watchHref: null,
+    };
+  }
+
+  if (game.status === "Final") {
+    return {
+      boxscoreHref,
+      dateLabel: compactDate,
+      homeAwayLabel: isHome ? "Home" : "Away",
+      matchupLabel,
+      note: null,
+      opponent,
+      resultLabel: "Final",
+      score: createAccessibleScore(doc, game, teamId),
+      statusLabel: "Final",
+      statusVariant: "final",
+      watchHref,
+    };
+  }
+
+  return {
+    boxscoreHref: null,
+    dateLabel: compactDate,
+    homeAwayLabel: isHome ? "Home" : "Away",
+    matchupLabel,
+    note: game.status === "In Progress" ? "Score as of last update." : null,
+    opponent,
+    resultLabel: game.status,
+    score: createAccessibleScore(doc, game, teamId),
+    statusLabel: game.status,
+    statusVariant: game.status === "In Progress" ? "in-progress" : "default",
+    watchHref: null,
+  };
+}
+
+function createAccessibleScore(
+  doc: Document,
+  game: GoldGameSummary,
+  teamId: number,
+): HTMLElement | null {
+  if (!game.score) {
+    return null;
+  }
+
+  const isHome = game.home_team.id === teamId;
+  const teamName = isHome ? game.home_team.name : game.away_team.name;
+  const teamScore = isHome ? game.score.home : game.score.away;
+  const opponentName = isHome ? game.away_team.name : game.home_team.name;
+  const opponentScore = isHome ? game.score.away : game.score.home;
+
+  const wrapper = doc.createElement("span");
+  wrapper.className = "schedule-score";
+
+  const accessibleLabel = doc.createElement("span");
+  accessibleLabel.className = "visually-hidden";
+  accessibleLabel.textContent = `${teamName} ${teamScore}, ${opponentName} ${opponentScore}`;
+
+  const compactScore = doc.createElement("span");
+  compactScore.setAttribute("aria-hidden", "true");
+  compactScore.textContent = `${teamScore}-${opponentScore}`;
+
+  wrapper.append(accessibleLabel, compactScore);
+  return wrapper;
+}
+
+function createWatchHref(condensedGameUrl: string, game: GoldGameSummary): string {
+  const params = new URLSearchParams({
+    src: condensedGameUrl,
+    subtitle: "Condensed Game",
+    title: `${game.away_team.name} at ${game.home_team.name}`,
+  });
+  return `/watch/?${params.toString()}`;
+}
+
+function formatLastUpdated(value: string | null): string {
+  if (!value) {
+    return "unavailable";
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return LAST_UPDATED_FORMATTER.format(parsed);
+}
+
+function getCalendarDateKey(value: string): string {
+  const date = new Date(value);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate(),
+  ).padStart(2, "0")}`;
+}
+
 function parseRoute(pathname: string): AppRoute {
   if (pathname === "/") return { view: "slate" };
   if (pathname === "/teams") return { view: "teams" };
@@ -382,6 +983,11 @@ function parseRoute(pathname: string): AppRoute {
     return team ? { view: "team", team } : { view: "team-not-found" };
   }
 
+  const boxscoreMatch = BOXSCORE_ROUTE_PATTERN.exec(pathname);
+  if (boxscoreMatch) {
+    return { view: "boxscore", gamePk: Number(boxscoreMatch[1]) };
+  }
+
   return { view: "not-found" };
 }
 
@@ -389,7 +995,8 @@ function isAppRoute(pathname: string): boolean {
   return (
     pathname === "/" ||
     pathname === "/teams" ||
-    TEAM_ROUTE_PATTERN.test(pathname)
+    TEAM_ROUTE_PATTERN.test(pathname) ||
+    BOXSCORE_ROUTE_PATTERN.test(pathname)
   );
 }
 

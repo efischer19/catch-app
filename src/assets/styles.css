@@ -378,6 +378,192 @@ footer p {
 }
 
 /* =========================================================
+   Team Schedule View
+   ========================================================= */
+
+.team-schedule-view {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.schedule-meta,
+.schedule-state,
+.schedule-card__subtitle,
+.schedule-card__meta,
+.schedule-note,
+.schedule-table td,
+.schedule-table th,
+.schedule-action {
+  margin-bottom: 0;
+}
+
+.schedule-groups {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.schedule-month {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.schedule-month__heading {
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.schedule-cards {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.schedule-card {
+  display: grid;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.schedule-card__body,
+.schedule-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.schedule-card__score,
+.schedule-card__title {
+  margin-bottom: 0;
+}
+
+.schedule-card__score {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.schedule-table-wrapper {
+  display: none;
+  overflow-x: auto;
+}
+
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.schedule-table th,
+.schedule-table td {
+  padding: 0.875rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.schedule-table tbody tr:last-child th,
+.schedule-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.schedule-table thead {
+  background: color-mix(in srgb, var(--color-surface) 85%, var(--color-bg));
+}
+
+.schedule-status,
+.schedule-game-label,
+.schedule-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.schedule-status {
+  border: 1px solid transparent;
+}
+
+.schedule-status--scheduled {
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-bg));
+  color: var(--color-accent);
+}
+
+.schedule-status--final {
+  background: color-mix(in srgb, #198754 12%, var(--color-bg));
+  color: #146c43;
+}
+
+.schedule-status--postponed {
+  background: color-mix(in srgb, #b45309 12%, var(--color-bg));
+  color: #92400e;
+}
+
+.schedule-status--in-progress {
+  background: color-mix(in srgb, #7c3aed 12%, var(--color-bg));
+  color: #6d28d9;
+}
+
+.schedule-status--default {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.schedule-game-label {
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+.schedule-score {
+  font-variant-numeric: tabular-nums;
+}
+
+.schedule-note {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.schedule-note--inline {
+  display: inline;
+}
+
+.schedule-error {
+  display: grid;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border: 1px solid #b91c1c;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, #b91c1c 8%, var(--color-bg));
+}
+
+.schedule-error__message {
+  margin-bottom: 0;
+}
+
+.schedule-action {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.schedule-action:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.schedule-action--button {
+  cursor: pointer;
+}
+
+/* =========================================================
    Theme Toggle Button
    ========================================================= */
 
@@ -423,6 +609,14 @@ footer p {
 
   .team-selector__divisions {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .schedule-cards {
+    display: none;
+  }
+
+  .schedule-table-wrapper {
+    display: block;
   }
 }
 
