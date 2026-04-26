@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initRouter } from "../src/main";
 import type { DataServiceClient } from "../src/services/data-service";
-import type { GoldTeamInfo, GoldUpcomingGames } from "../src/types/generated";
+import type {
+  GoldBoxscoreSummary,
+  GoldTeamInfo,
+  GoldUpcomingGames,
+} from "../src/types/generated";
 
 const appShell = `
   <p id="status-announcements"></p>
@@ -68,11 +72,23 @@ const brewers: GoldTeamInfo = {
   name: "Milwaukee Brewers",
 };
 
+const sampleBoxscore: GoldBoxscoreSummary = {
+  away_e: 1,
+  away_h: 7,
+  away_r: 3,
+  home_e: 0,
+  home_h: 9,
+  home_r: 5,
+  losing_pitcher: "Tanner Houck (2-1)",
+  save_pitcher: "Luke Weaver (4)",
+  winning_pitcher: "Gerrit Cole (3-0)",
+};
+
 const sampleUpcomingGames: GoldUpcomingGames = {
   games: [
     {
       away_team: redSox,
-      boxscore_summary: null,
+      boxscore_summary: sampleBoxscore,
       condensed_game_url: "https://media.test/redsox-yankees.mp4",
       date: "2026-04-26T17:05:00Z",
       game_pk: 7001,
@@ -227,6 +243,18 @@ describe("today's slate view", () => {
 
     const watchLink = document.querySelector<HTMLAnchorElement>('a[href^="/watch/?"]');
     expect(watchLink?.textContent).toBe("Watch Condensed Game");
+
+    boxscoreLink?.dispatchEvent(
+      new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }),
+    );
+
+    expect(window.location.pathname).toBe("/boxscore/7001");
+    expect(document.querySelector("h2")?.textContent).toBe(
+      "Boston Red Sox @ New York Yankees",
+    );
+    expect(document.body.textContent).toContain("Winning Pitcher");
+    expect(document.body.textContent).toContain("Gerrit Cole (3-0)");
+    expect(document.body.textContent).toContain("Back to Today's Slate");
   });
 
   it("shows a friendly empty state when no games are scheduled", async () => {

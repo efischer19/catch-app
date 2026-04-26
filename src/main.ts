@@ -7,6 +7,7 @@ import {
 } from "./teams";
 import { DataService, type DataServiceClient } from "./services/data-service";
 import type {
+  GoldBoxscoreSummary,
   GoldGameSummary,
   GoldScore,
   GoldTeamInfo,
@@ -28,6 +29,8 @@ interface RouterOptions {
 
 interface RouterContext {
   dataService: DataServiceClient;
+  currentPathname: string | null;
+  gameCache: Map<number, GoldGameSummary>;
   renderToken: number;
 }
 
@@ -81,7 +84,9 @@ export function initRouter(
   options: RouterOptions = {},
 ): () => void {
   const context: RouterContext = {
+    currentPathname: null,
     dataService: options.dataService ?? DataService,
+    gameCache: new Map<number, GoldGameSummary>(),
     renderToken: 0,
   };
 
@@ -210,9 +215,30 @@ function renderRoute(
   if (!(appView instanceof HTMLElement)) return;
 
   const pathname = normalizePathname(win.location.pathname);
+  const previousPathname = context.currentPathname;
+  context.currentPathname = pathname;
   const route = parseRoute(pathname);
   const renderToken = ++context.renderToken;
-  const view = createRouteView(doc, route);
+  const view =
+    route.view === "boxscore"
+      ? createBoxscoreView(
+          doc,
+          route.gamePk,
+          context.gameCache.get(route.gamePk) ?? null,
+          getBoxscoreBackTarget(previousPathname, context.gameCache.get(route.gamePk) ?? null),
+          () =>
+            navigateTo(
+              getBoxscoreBackTarget(
+                previousPathname,
+                context.gameCache.get(route.gamePk) ?? null,
+              ).href,
+              doc,
+              win,
+              context,
+              true,
+            ),
+        )
+      : createRouteView(doc, route);
 
   updateMainNavigation(doc, pathname);
   updateDocumentTitle(doc, route);
@@ -227,6 +253,7 @@ function renderRoute(
       view,
       route.team,
       context.dataService,
+      context.gameCache,
       () =>
         context.renderToken === renderToken &&
         normalizePathname(win.location.pathname) === pathname,
@@ -237,6 +264,7 @@ function renderRoute(
     void loadSlateView(
       view,
       context.dataService,
+      context.gameCache,
       () =>
         context.renderToken === renderToken &&
         normalizePathname(win.location.pathname) === pathname,
@@ -292,7 +320,7 @@ function createRouteView(doc: Document, route: AppRoute): HTMLElement {
     case "team":
       return createTeamScheduleView(doc, route.team);
     case "boxscore":
-      return createBoxscoreView(doc, route.gamePk);
+      return createViewSection(doc, `Boxscore ${route.gamePk}`);
     case "team-not-found":
       return createMissingTeamView(doc);
     case "not-found":
@@ -329,15 +357,87 @@ function createTeamScheduleView(doc: Document, team: Team): HTMLElement {
   return layout;
 }
 
-function createBoxscoreView(doc: Document, gamePk: number): HTMLElement {
-  const section = createViewSection(doc, "Boxscore");
-  section.append(
-    createParagraph(
+interface BoxscoreBackTarget {
+  ariaLabel: string;
+  href: string;
+  label: string;
+}
+
+function createBoxscoreView(
+  doc: Document,
+  gamePk: number,
+  game: GoldGameSummary | null,
+  backTarget: BoxscoreBackTarget,
+  onBack: () => void,
+): HTMLElement {
+  const headingText = game
+    ? `${game.away_team.name} @ ${game.home_team.name}`
+    : `Boxscore ${gamePk}`;
+  const section = createViewSection(doc, headingText);
+  section.classList.add("boxscore-view");
+
+  const controls = doc.createElement("div");
+  controls.className = "boxscore-view__controls";
+
+  const backButton = doc.createElement("button");
+  backButton.type = "button";
+  backButton.className = "schedule-action schedule-action--button";
+  backButton.textContent = backTarget.label;
+  backButton.setAttribute("aria-label", backTarget.ariaLabel);
+  backButton.addEventListener("click", onBack);
+  controls.append(backButton);
+
+  section.append(controls);
+
+  if (!game) {
+    section.append(createParagraph(doc, "Boxscore data not yet available"));
+    return section;
+  }
+
+  const meta = doc.createElement("p");
+  meta.className = "boxscore-view__meta";
+  meta.append(
+    createStatusBadge(
       doc,
-      `Boxscore details for game ${gamePk} will appear here in a future update.`,
+      getBoxscoreStatusVariant(game),
+      getBoxscoreStatusLabel(game),
     ),
+    createInlineText(doc, FULL_DATE_FORMATTER.format(new Date(game.date))),
   );
-  return section;
+  if (typeof game.game_number === "number") {
+    meta.append(doc.createTextNode(" "), createGameLabel(doc, game.game_number));
+  }
+  section.append(meta);
+
+  const scoreSummary = createBoxscoreScoreSummary(doc, game);
+  if (scoreSummary) {
+    section.append(scoreSummary);
+  }
+
+  if (game.status === "Postponed") {
+    section.append(createParagraph(doc, "Boxscore unavailable for postponed games."));
+    return appendBoxscoreActions(doc, section, game);
+  }
+
+  if (game.status !== "Final") {
+    section.append(createParagraph(doc, "Boxscore data not yet available"));
+    return appendBoxscoreActions(doc, section, game);
+  }
+
+  if (!game.boxscore_summary) {
+    section.append(createParagraph(doc, "Boxscore data not yet available"));
+    return appendBoxscoreActions(doc, section, game);
+  }
+
+  const content = doc.createElement("div");
+  content.className = "boxscore-view__content";
+  content.append(
+    createBoxscoreLineTable(doc, game, game.boxscore_summary),
+    createBoxscorePitchingDecisions(doc, game.boxscore_summary),
+  );
+  section.append(content);
+
+  return appendBoxscoreActions(doc, section, game);
 }
 
 function createMissingTeamView(doc: Document): HTMLElement {
@@ -364,6 +464,7 @@ async function loadTeamScheduleView(
   view: HTMLElement,
   team: Team,
   dataService: DataServiceClient,
+  gameCache: Map<number, GoldGameSummary>,
   isCurrentView: () => boolean,
   showLoadingState = false,
 ): Promise<void> {
@@ -380,6 +481,7 @@ async function loadTeamScheduleView(
   }
 
   if (result.ok) {
+    cacheGames(gameCache, result.data.games ?? []);
     renderScheduleSuccess(scheduleView, view.ownerDocument, team, result.data, result.lastUpdated);
     return;
   }
@@ -389,7 +491,7 @@ async function loadTeamScheduleView(
     view.ownerDocument,
     result.error.message,
     () => {
-      void loadTeamScheduleView(view, team, dataService, isCurrentView, true);
+      void loadTeamScheduleView(view, team, dataService, gameCache, isCurrentView, true);
     },
   );
 }
@@ -397,6 +499,7 @@ async function loadTeamScheduleView(
 async function loadSlateView(
   view: HTMLElement,
   dataService: DataServiceClient,
+  gameCache: Map<number, GoldGameSummary>,
   isCurrentView: () => boolean,
   showLoadingState = false,
 ): Promise<void> {
@@ -415,12 +518,13 @@ async function loadSlateView(
   }
 
   if (result.ok) {
+    cacheGames(gameCache, result.data.games ?? []);
     renderSlateSuccess(slateView, view.ownerDocument, result.data, result.lastUpdated);
     return;
   }
 
   renderScheduleError(slateView, view.ownerDocument, result.error.message, () => {
-    void loadSlateView(view, dataService, isCurrentView, true);
+    void loadSlateView(view, dataService, gameCache, isCurrentView, true);
   });
 }
 
@@ -709,16 +813,28 @@ function createActionLink(
   doc: Document,
   href: string,
   text: string,
-  options: { external?: boolean } = {},
+  options: { ariaLabel?: string; external?: boolean } = {},
 ): HTMLAnchorElement {
   const link = doc.createElement("a");
   link.href = href;
   link.className = "schedule-action";
   link.textContent = text;
+  if (options.ariaLabel) {
+    link.setAttribute("aria-label", options.ariaLabel);
+  }
   if (options.external) {
     link.rel = "noopener noreferrer";
   }
   return link;
+}
+
+function cacheGames(
+  gameCache: Map<number, GoldGameSummary>,
+  games: GoldGameSummary[],
+): void {
+  for (const game of games) {
+    gameCache.set(game.game_pk, game);
+  }
 }
 
 function createStatusBadge(
@@ -904,6 +1020,44 @@ interface SlateGameDetails {
 interface GameActionDetails {
   boxscoreHref: string | null;
   watchHref: string | null;
+}
+
+function getBoxscoreBackTarget(
+  previousPathname: string | null,
+  game: GoldGameSummary | null,
+): BoxscoreBackTarget {
+  if (previousPathname && previousPathname.startsWith("/team/")) {
+    const previousRoute = parseRoute(previousPathname);
+    if (previousRoute.view === "team") {
+      return {
+        ariaLabel: `Back to ${previousRoute.team.name} schedule`,
+        href: previousPathname,
+        label: `Back to ${previousRoute.team.name} schedule`,
+      };
+    }
+  }
+
+  if (previousPathname === "/") {
+    return {
+      ariaLabel: "Back to Today's Slate",
+      href: previousPathname,
+      label: "Back to Today's Slate",
+    };
+  }
+
+  if (game) {
+    return {
+      ariaLabel: `Back to ${game.home_team.name} schedule`,
+      href: `/team/${game.home_team.id}`,
+      label: `Back to ${game.home_team.name} schedule`,
+    };
+  }
+
+  return {
+    ariaLabel: "Back to Today's Slate",
+    href: "/",
+    label: "Back to Today's Slate",
+  };
 }
 
 function sortGames(games: GoldGameSummary[]): GoldGameSummary[] {
@@ -1232,6 +1386,174 @@ function createAccessibleScore(
 
   wrapper.append(accessibleLabel, compactScore);
   return wrapper;
+}
+
+function createBoxscoreScoreSummary(
+  doc: Document,
+  game: GoldGameSummary,
+): HTMLParagraphElement | null {
+  if (!game.score) {
+    return null;
+  }
+
+  const summary = doc.createElement("p");
+  summary.className = "boxscore-view__summary";
+  summary.textContent = `${game.away_team.name} ${game.score.away}, ${game.home_team.name} ${game.score.home}`;
+  return summary;
+}
+
+function getBoxscoreStatusLabel(game: GoldGameSummary): string {
+  return isTiedGame(game) ? "Tied" : game.status;
+}
+
+function getBoxscoreStatusVariant(game: GoldGameSummary): GameDetails["statusVariant"] {
+  if (game.status === "Final" || isTiedGame(game)) {
+    return "final";
+  }
+
+  if (game.status === "Postponed") {
+    return "postponed";
+  }
+
+  if (game.status === "In Progress" || game.status === "Delayed") {
+    return "in-progress";
+  }
+
+  if (game.status === "Scheduled") {
+    return "scheduled";
+  }
+
+  return "default";
+}
+
+function isTiedGame(game: GoldGameSummary): boolean {
+  return Boolean(game.score && game.score.away === game.score.home);
+}
+
+function createBoxscoreLineTable(
+  doc: Document,
+  game: GoldGameSummary,
+  boxscore: GoldBoxscoreSummary,
+): HTMLElement {
+  const wrapper = doc.createElement("div");
+  wrapper.className = "boxscore-table-wrapper";
+
+  const table = doc.createElement("table");
+  table.className = "schedule-table boxscore-table";
+  table.setAttribute(
+    "aria-label",
+    `${game.away_team.name}: ${boxscore.away_r} runs, ${boxscore.away_h} hits, ${boxscore.away_e} errors. ${game.home_team.name}: ${boxscore.home_r} runs, ${boxscore.home_h} hits, ${boxscore.home_e} errors.`,
+  );
+
+  const caption = doc.createElement("caption");
+  caption.className = "visually-hidden";
+  caption.textContent = `Runs, hits, and errors for ${game.away_team.name} at ${game.home_team.name}`;
+
+  const thead = doc.createElement("thead");
+  const headerRow = doc.createElement("tr");
+  for (const headingText of ["Team", "R", "H", "E"]) {
+    const heading = doc.createElement("th");
+    heading.scope = "col";
+    heading.textContent = headingText;
+    headerRow.append(heading);
+  }
+  thead.append(headerRow);
+
+  const tbody = doc.createElement("tbody");
+  tbody.append(
+    createBoxscoreLineRow(doc, game.away_team.name, boxscore.away_r, boxscore.away_h, boxscore.away_e),
+    createBoxscoreLineRow(doc, game.home_team.name, boxscore.home_r, boxscore.home_h, boxscore.home_e),
+  );
+
+  table.append(caption, thead, tbody);
+  wrapper.append(table);
+  return wrapper;
+}
+
+function createBoxscoreLineRow(
+  doc: Document,
+  teamName: string,
+  runs: number,
+  hits: number,
+  errors: number,
+): HTMLTableRowElement {
+  const row = doc.createElement("tr");
+
+  const teamCell = doc.createElement("th");
+  teamCell.scope = "row";
+  teamCell.textContent = teamName;
+  row.append(teamCell);
+
+  for (const value of [runs, hits, errors]) {
+    const cell = doc.createElement("td");
+    cell.textContent = String(value);
+    row.append(cell);
+  }
+
+  return row;
+}
+
+function createBoxscorePitchingDecisions(
+  doc: Document,
+  boxscore: GoldBoxscoreSummary,
+): HTMLElement {
+  const section = doc.createElement("section");
+  section.className = "boxscore-decisions";
+
+  const heading = doc.createElement("h3");
+  heading.className = "boxscore-decisions__heading";
+  heading.textContent = "Pitching decisions";
+
+  const list = doc.createElement("dl");
+  list.className = "boxscore-decisions__list";
+  appendPitchingDecision(doc, list, "Winning Pitcher", boxscore.winning_pitcher);
+  appendPitchingDecision(doc, list, "Losing Pitcher", boxscore.losing_pitcher);
+  appendPitchingDecision(doc, list, "Save", boxscore.save_pitcher);
+
+  section.append(heading, list);
+  return section;
+}
+
+function appendPitchingDecision(
+  doc: Document,
+  list: HTMLDListElement,
+  label: string,
+  value: string | null,
+): void {
+  if (!value) {
+    return;
+  }
+
+  const term = doc.createElement("dt");
+  term.textContent = label;
+
+  const description = doc.createElement("dd");
+  description.textContent = value;
+
+  list.append(term, description);
+}
+
+function appendBoxscoreActions(
+  doc: Document,
+  section: HTMLElement,
+  game: GoldGameSummary,
+): HTMLElement {
+  if (!game.condensed_game_url) {
+    return section;
+  }
+
+  const actions = doc.createElement("div");
+  actions.className = "boxscore-view__actions";
+  actions.append(
+    createActionLink(doc, createWatchHref(game.condensed_game_url, game), "Watch Condensed Game", {
+      ariaLabel: `Watch condensed game: ${game.away_team.name} vs ${game.home_team.name}, ${FULL_DATE_FORMATTER.format(
+        new Date(game.date),
+      )}`,
+      external: true,
+    }),
+  );
+  section.append(actions);
+  return section;
 }
 
 function getAccessibleScoreDisplay(

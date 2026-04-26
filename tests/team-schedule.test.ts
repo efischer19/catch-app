@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initRouter } from "../src/main";
 import type { DataServiceClient } from "../src/services/data-service";
-import type { GoldTeamInfo, GoldTeamSchedule } from "../src/types/generated";
+import type {
+  GoldBoxscoreSummary,
+  GoldTeamInfo,
+  GoldTeamSchedule,
+} from "../src/types/generated";
 
 const appShell = `
   <p id="status-announcements"></p>
@@ -52,6 +56,18 @@ const orioles: GoldTeamInfo = {
   name: "Baltimore Orioles",
 };
 
+const sampleBoxscore: GoldBoxscoreSummary = {
+  away_e: 1,
+  away_h: 7,
+  away_r: 3,
+  home_e: 0,
+  home_h: 9,
+  home_r: 5,
+  losing_pitcher: "Tanner Houck (2-1)",
+  save_pitcher: "Luke Weaver (4)",
+  winning_pitcher: "Gerrit Cole (3-0)",
+};
+
 const sampleSchedule: GoldTeamSchedule = {
   games: [
     {
@@ -67,7 +83,7 @@ const sampleSchedule: GoldTeamSchedule = {
     },
     {
       away_team: redSox,
-      boxscore_summary: null,
+      boxscore_summary: sampleBoxscore,
       condensed_game_url: "https://media.test/yankees-redsox.mp4",
       date: "2026-04-01T17:05:00Z",
       game_pk: 5001,
@@ -232,8 +248,22 @@ describe("team schedule view", () => {
     );
 
     expect(window.location.pathname).toBe("/boxscore/5001");
-    expect(document.querySelector("h2")?.textContent).toBe("Boxscore");
+    expect(document.querySelector("h2")?.textContent).toBe(
+      "Boston Red Sox @ New York Yankees",
+    );
     expect(document.title).toBe("Catch | Boxscore");
+    expect(document.body.textContent).toContain("Boston Red Sox 3, New York Yankees 5");
+    expect(document.body.textContent).toContain("Winning Pitcher");
+    expect(document.body.textContent).toContain("Gerrit Cole (3-0)");
+    expect(document.body.textContent).toContain("Losing Pitcher");
+    expect(document.body.textContent).toContain("Tanner Houck (2-1)");
+    expect(document.body.textContent).toContain("Save");
+    expect(document.body.textContent).toContain("Luke Weaver (4)");
+    expect(
+      document.querySelector<HTMLAnchorElement>(
+        'a[aria-label^="Watch condensed game: Boston Red Sox vs New York Yankees"]',
+      )?.textContent,
+    ).toBe("Watch Condensed Game");
   });
 
   it("shows an error with retry when loading fails", async () => {

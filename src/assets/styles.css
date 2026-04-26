@@ -386,6 +386,11 @@ footer p {
   gap: var(--spacing-md);
 }
 
+.boxscore-view {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
 .slate-view {
   display: grid;
   gap: var(--spacing-md);
@@ -407,6 +412,62 @@ footer p {
 .slate-date-groups {
   display: grid;
   gap: var(--spacing-md);
+}
+
+.boxscore-view__controls,
+.boxscore-view__actions,
+.boxscore-view__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.boxscore-view__meta,
+.boxscore-view__summary {
+  margin-bottom: 0;
+}
+
+.boxscore-view__summary {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.boxscore-view__content {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.boxscore-table-wrapper {
+  overflow-x: auto;
+}
+
+.boxscore-decisions {
+  display: grid;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.boxscore-decisions__heading {
+  margin-bottom: 0;
+}
+
+.boxscore-decisions__list {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--spacing-xs) var(--spacing-sm);
+  margin: 0;
+}
+
+.boxscore-decisions__list dt {
+  font-weight: 700;
+}
+
+.boxscore-decisions__list dd {
+  margin: 0;
 }
 
 .slate-date-group {
@@ -705,6 +766,11 @@ footer p {
 
   .schedule-table-wrapper {
     display: block;
+  }
+
+  .boxscore-view__content {
+    grid-template-columns: minmax(0, 1.5fr) minmax(16rem, 1fr);
+    align-items: start;
   }
 }
 
