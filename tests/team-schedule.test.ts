@@ -261,7 +261,7 @@ describe("team schedule view", () => {
     expect(document.body.textContent).toContain("Luke Weaver (4)");
     expect(
       document.querySelector<HTMLAnchorElement>(
-        'a[aria-label^="Watch condensed game: Boston Red Sox vs New York Yankees"]',
+        'a[aria-label^="Watch condensed game: Boston Red Sox at New York Yankees"]',
       )?.textContent,
     ).toBe("Watch Condensed Game");
   });

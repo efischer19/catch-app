@@ -1445,10 +1445,22 @@ function createBoxscoreLineTable(
 
   const thead = doc.createElement("thead");
   const headerRow = doc.createElement("tr");
-  for (const headingText of ["Team", "R", "H", "E"]) {
+  for (const [headingText, title] of [
+    ["Team", null],
+    ["R", "Runs"],
+    ["H", "Hits"],
+    ["E", "Errors"],
+  ] as const) {
     const heading = doc.createElement("th");
     heading.scope = "col";
-    heading.textContent = headingText;
+    if (title) {
+      const abbreviation = doc.createElement("abbr");
+      abbreviation.title = title;
+      abbreviation.textContent = headingText;
+      heading.append(abbreviation);
+    } else {
+      heading.textContent = headingText;
+    }
     headerRow.append(heading);
   }
   thead.append(headerRow);
@@ -1540,7 +1552,7 @@ function appendBoxscoreActions(
   actions.className = "boxscore-view__actions";
   actions.append(
     createActionLink(doc, createWatchHref(game.condensed_game_url, game), "Watch Condensed Game", {
-      ariaLabel: `Watch condensed game: ${game.away_team.name} vs ${game.home_team.name}, ${FULL_DATE_FORMATTER.format(
+      ariaLabel: `Watch condensed game: ${game.away_team.name} at ${game.home_team.name}, ${FULL_DATE_FORMATTER.format(
         new Date(game.date),
       )}`,
       external: true,
