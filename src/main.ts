@@ -219,26 +219,20 @@ function renderRoute(
   context.currentPathname = pathname;
   const route = parseRoute(pathname);
   const renderToken = ++context.renderToken;
-  const view =
+  const cachedBoxscoreGame =
+    route.view === "boxscore" ? context.gameCache.get(route.gamePk) ?? null : null;
+  const boxscoreBackTarget =
     route.view === "boxscore"
-      ? createBoxscoreView(
-          doc,
-          route.gamePk,
-          context.gameCache.get(route.gamePk) ?? null,
-          getBoxscoreBackTarget(previousPathname, context.gameCache.get(route.gamePk) ?? null),
-          () =>
-            navigateTo(
-              getBoxscoreBackTarget(
-                previousPathname,
-                context.gameCache.get(route.gamePk) ?? null,
-              ).href,
-              doc,
-              win,
-              context,
-              true,
-            ),
-        )
-      : createRouteView(doc, route);
+      ? getBoxscoreBackTarget(previousPathname, cachedBoxscoreGame)
+      : null;
+  let view: HTMLElement;
+  if (route.view === "boxscore" && boxscoreBackTarget) {
+    view = createBoxscoreView(doc, route.gamePk, cachedBoxscoreGame, boxscoreBackTarget, () =>
+      navigateTo(boxscoreBackTarget.href, doc, win, context, true),
+    );
+  } else {
+    view = createRouteView(doc, route);
+  }
 
   updateMainNavigation(doc, pathname);
   updateDocumentTitle(doc, route);
