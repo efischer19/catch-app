@@ -386,6 +386,11 @@ footer p {
   gap: var(--spacing-md);
 }
 
+.slate-view {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
 .schedule-meta,
 .schedule-state,
 .schedule-card__subtitle,
@@ -393,8 +398,91 @@ footer p {
 .schedule-note,
 .schedule-table td,
 .schedule-table th,
-.schedule-action {
+.schedule-action,
+.slate-game__meta,
+.slate-game__score {
   margin-bottom: 0;
+}
+
+.slate-date-groups {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.slate-date-group {
+  display: grid;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.slate-date-group--today {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-bg));
+}
+
+.slate-date-group__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: 0;
+}
+
+.slate-today-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.slate-game-list {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.slate-game {
+  display: grid;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.slate-game__header,
+.slate-game__body {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.slate-game__title-row,
+.slate-game__meta,
+.slate-game__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.slate-game__title {
+  margin-bottom: 0;
+}
+
+.slate-game__score {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.slate-empty-state {
+  color: var(--color-text-muted);
 }
 
 .schedule-groups {
