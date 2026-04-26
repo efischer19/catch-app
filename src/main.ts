@@ -635,7 +635,8 @@ function createStatusBadge(
 function createGameLabel(doc: Document, gameNumber: number | undefined): HTMLElement {
   const label = doc.createElement("span");
   label.className = "schedule-game-label";
-  label.textContent = `Game ${gameNumber ?? ""}`.trim();
+  label.textContent =
+    typeof gameNumber === "number" ? `Game ${gameNumber}` : "Doubleheader";
   return label;
 }
 
@@ -953,7 +954,7 @@ function createWatchHref(game: GoldGameSummary): string {
 
 function formatLastUpdated(value: string | null): string {
   if (!value) {
-    return "unknown";
+    return "unavailable";
   }
 
   const parsed = new Date(value);
