@@ -6,7 +6,12 @@ import {
   type Team,
 } from "./teams";
 import { DataService, type DataServiceClient } from "./services/data-service";
-import type { GoldGameSummary, GoldTeamInfo, GoldTeamSchedule } from "./types/generated";
+import type {
+  GoldGameSummary,
+  GoldTeamInfo,
+  GoldTeamSchedule,
+  GoldUpcomingGames,
+} from "./types/generated";
 
 type AppRoute =
   | { view: "slate" }
@@ -38,9 +43,20 @@ const GAME_DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
   month: "short",
   day: "numeric",
 });
+const FULL_DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+});
 const TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
   hour: "numeric",
   minute: "2-digit",
+});
+const SLATE_TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
+  hour: "numeric",
+  minute: "2-digit",
+  timeZoneName: "short",
 });
 const LAST_UPDATED_FORMATTER = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
@@ -215,6 +231,16 @@ function renderRoute(
         normalizePathname(win.location.pathname) === pathname,
     );
   }
+
+  if (route.view === "slate") {
+    void loadSlateView(
+      view,
+      context.dataService,
+      () =>
+        context.renderToken === renderToken &&
+        normalizePathname(win.location.pathname) === pathname,
+    );
+  }
 }
 
 function updateMainNavigation(doc: Document, pathname: string): void {
@@ -275,12 +301,9 @@ function createRouteView(doc: Document, route: AppRoute): HTMLElement {
 
 function createSlateView(doc: Document): HTMLElement {
   const section = createViewSection(doc, "Today's Slate");
-  section.append(
-    createParagraph(
-      doc,
-      "Today's MLB slate will appear here. Use the Teams view to jump directly to a club schedule.",
-    ),
-  );
+  section.classList.add("slate-view");
+  section.dataset.slateView = "true";
+  renderSlateLoading(section, doc);
   return section;
 }
 
@@ -370,6 +393,36 @@ async function loadTeamScheduleView(
   );
 }
 
+async function loadSlateView(
+  view: HTMLElement,
+  dataService: DataServiceClient,
+  isCurrentView: () => boolean,
+  showLoadingState = false,
+): Promise<void> {
+  const slateView = view.matches("[data-slate-view='true']")
+    ? view
+    : view.querySelector<HTMLElement>("[data-slate-view='true']");
+  if (!slateView) return;
+
+  if (showLoadingState) {
+    renderSlateLoading(slateView, view.ownerDocument);
+  }
+
+  const result = await dataService.getUpcomingGames();
+  if (!isCurrentView()) {
+    return;
+  }
+
+  if (result.ok) {
+    renderSlateSuccess(slateView, view.ownerDocument, result.data, result.lastUpdated);
+    return;
+  }
+
+  renderScheduleError(slateView, view.ownerDocument, result.error.message, () => {
+    void loadSlateView(view, dataService, isCurrentView, true);
+  });
+}
+
 function renderScheduleLoading(section: HTMLElement, doc: Document): void {
   section.setAttribute("aria-busy", "true");
 
@@ -377,6 +430,17 @@ function renderScheduleLoading(section: HTMLElement, doc: Document): void {
   status.className = "schedule-state";
   status.setAttribute("role", "status");
   status.textContent = "Loading schedule…";
+
+  setSectionBody(section, status);
+}
+
+function renderSlateLoading(section: HTMLElement, doc: Document): void {
+  section.setAttribute("aria-busy", "true");
+
+  const status = doc.createElement("p");
+  status.className = "schedule-state";
+  status.setAttribute("role", "status");
+  status.textContent = "Loading today's slate…";
 
   setSectionBody(section, status);
 }
@@ -439,6 +503,41 @@ function renderScheduleSuccess(
   }
 
   setSectionBody(section, meta, scheduleGroups);
+}
+
+function renderSlateSuccess(
+  section: HTMLElement,
+  doc: Document,
+  upcomingGames: GoldUpcomingGames,
+  lastUpdated: string | null,
+): void {
+  section.removeAttribute("aria-busy");
+
+  const meta = doc.createElement("p");
+  meta.className = "schedule-meta";
+  meta.textContent = `Last updated ${formatLastUpdated(lastUpdated)}`;
+
+  const games = sortGames(upcomingGames.games ?? []);
+  if (games.length === 0) {
+    const emptyState = createParagraph(
+      doc,
+      "No games scheduled today. Check back soon for the next slate.",
+    );
+    emptyState.className = "slate-empty-state";
+    setSectionBody(section, meta, emptyState);
+    return;
+  }
+
+  const gamesPerDate = countGamesByDate(games);
+  const groupedGames = groupGamesByDate(games);
+  const slateGroups = doc.createElement("div");
+  slateGroups.className = "slate-date-groups";
+
+  for (const group of groupedGames) {
+    slateGroups.append(createSlateDateSection(doc, group, gamesPerDate));
+  }
+
+  setSectionBody(section, meta, slateGroups);
 }
 
 function createScheduleMonthSection(
@@ -586,7 +685,7 @@ function createScheduleTable(
   return table;
 }
 
-function createScheduleActions(doc: Document, details: GameDetails): HTMLElement {
+function createScheduleActions(doc: Document, details: GameActionDetails): HTMLElement {
   const actions = doc.createElement("div");
   actions.className = "schedule-actions";
 
@@ -771,6 +870,12 @@ interface ScheduleMonthGroup {
   games: GoldGameSummary[];
 }
 
+interface SlateDateGroup {
+  games: GoldGameSummary[];
+  isToday: boolean;
+  label: string;
+}
+
 interface GameDetails {
   boxscoreHref: string | null;
   dateLabel: string;
@@ -782,6 +887,21 @@ interface GameDetails {
   score: HTMLElement | null;
   statusLabel: string;
   statusVariant: "final" | "in-progress" | "postponed" | "scheduled" | "default";
+  watchHref: string | null;
+}
+
+interface SlateGameDetails {
+  boxscoreHref: string | null;
+  detailLabel: string;
+  note: string | null;
+  score: HTMLElement | null;
+  statusLabel: string;
+  statusVariant: GameDetails["statusVariant"];
+  watchHref: string | null;
+}
+
+interface GameActionDetails {
+  boxscoreHref: string | null;
   watchHref: string | null;
 }
 
@@ -818,6 +938,30 @@ function groupGamesByMonth(games: GoldGameSummary[]): ScheduleMonthGroup[] {
   return [...groups.values()];
 }
 
+function groupGamesByDate(games: GoldGameSummary[]): SlateDateGroup[] {
+  const groups = new Map<string, SlateDateGroup>();
+  const todayKey = getCalendarDateKey(getCurrentDate().toISOString());
+
+  for (const game of games) {
+    const date = new Date(game.date);
+    const dateKey = getCalendarDateKey(game.date);
+    const existing = groups.get(dateKey);
+
+    if (existing) {
+      existing.games.push(game);
+      continue;
+    }
+
+    groups.set(dateKey, {
+      games: [game],
+      isToday: dateKey === todayKey,
+      label: FULL_DATE_FORMATTER.format(date),
+    });
+  }
+
+  return [...groups.values()];
+}
+
 function countGamesByDate(games: GoldGameSummary[]): Map<string, number> {
   const counts = new Map<string, number>();
 
@@ -837,6 +981,155 @@ function shouldShowGameLabel(
     typeof game.game_number === "number" &&
     (gamesPerDate.get(getCalendarDateKey(game.date)) ?? 0) > 1
   );
+}
+
+function createSlateDateSection(
+  doc: Document,
+  group: SlateDateGroup,
+  gamesPerDate: Map<string, number>,
+): HTMLElement {
+  const section = doc.createElement("section");
+  section.className = "slate-date-group";
+  if (group.isToday) {
+    section.classList.add("slate-date-group--today");
+  }
+
+  const heading = doc.createElement("h3");
+  heading.className = "slate-date-group__heading";
+  heading.textContent = group.label;
+  if (group.isToday) {
+    heading.setAttribute("aria-current", "date");
+    heading.append(doc.createTextNode(" "), createTodayBadge(doc));
+  }
+
+  const list = doc.createElement("div");
+  list.className = "slate-game-list";
+  for (const game of group.games) {
+    list.append(createSlateGameCard(doc, game, gamesPerDate));
+  }
+
+  section.append(heading, list);
+  return section;
+}
+
+function createTodayBadge(doc: Document): HTMLElement {
+  const badge = doc.createElement("span");
+  badge.className = "slate-today-badge";
+  badge.textContent = "Today";
+  return badge;
+}
+
+function createSlateGameCard(
+  doc: Document,
+  game: GoldGameSummary,
+  gamesPerDate: Map<string, number>,
+): HTMLElement {
+  const details = getSlateGameDetails(doc, game);
+  const article = doc.createElement("article");
+  article.className = "slate-game";
+
+  const header = doc.createElement("div");
+  header.className = "slate-game__header";
+
+  const titleRow = doc.createElement("div");
+  titleRow.className = "slate-game__title-row";
+
+  const title = doc.createElement("h4");
+  title.className = "slate-game__title";
+  title.textContent = `${game.away_team.name} @ ${game.home_team.name}`;
+  titleRow.append(title);
+
+  if (shouldShowGameLabel(game, gamesPerDate)) {
+    titleRow.append(createGameLabel(doc, game.game_number));
+  }
+
+  const meta = doc.createElement("p");
+  meta.className = "slate-game__meta";
+  meta.append(
+    createStatusBadge(doc, details.statusVariant, details.statusLabel),
+    createInlineText(doc, details.detailLabel),
+  );
+
+  header.append(titleRow, meta);
+
+  const body = doc.createElement("div");
+  body.className = "slate-game__body";
+
+  if (details.score) {
+    const score = doc.createElement("p");
+    score.className = "slate-game__score";
+    score.append(details.score);
+    body.append(score);
+  }
+
+  if (details.note) {
+    const note = createParagraph(doc, details.note);
+    note.className = "schedule-note";
+    body.append(note);
+  }
+
+  const actions = createScheduleActions(doc, details);
+  if (actions.childElementCount > 0) {
+    body.append(actions);
+  }
+
+  article.append(header, body);
+  return article;
+}
+
+function getSlateGameDetails(doc: Document, game: GoldGameSummary): SlateGameDetails {
+  const boxscoreHref = game.status === "Final" ? `/boxscore/${game.game_pk}` : null;
+  const watchHref = game.status === "Final" && game.condensed_game_url
+    ? createWatchHref(game.condensed_game_url, game)
+    : null;
+
+  if (game.status === "Scheduled") {
+    return {
+      boxscoreHref: null,
+      detailLabel: SLATE_TIME_FORMATTER.format(new Date(game.date)),
+      note: null,
+      score: null,
+      statusLabel: "Scheduled",
+      statusVariant: "scheduled",
+      watchHref: null,
+    };
+  }
+
+  if (game.status === "Postponed") {
+    return {
+      boxscoreHref: null,
+      detailLabel: "No start time",
+      note: null,
+      score: null,
+      statusLabel: "Postponed",
+      statusVariant: "postponed",
+      watchHref: null,
+    };
+  }
+
+  if (game.status === "Final") {
+    return {
+      boxscoreHref,
+      detailLabel: "Final",
+      note: null,
+      score: createAccessibleScore(doc, game),
+      statusLabel: "Final",
+      statusVariant: "final",
+      watchHref,
+    };
+  }
+
+  return {
+    boxscoreHref: null,
+    detailLabel: game.status,
+    note: game.score ? "Score as of last update." : null,
+    score: createAccessibleScore(doc, game),
+    statusLabel: game.status,
+    statusVariant: game.status === "In Progress" || game.status === "Delayed"
+      ? "in-progress"
+      : "default",
+    watchHref: null,
+  };
 }
 
 function getGameDetails(doc: Document, teamId: number, game: GoldGameSummary): GameDetails {
@@ -916,17 +1209,29 @@ function getGameDetails(doc: Document, teamId: number, game: GoldGameSummary): G
 function createAccessibleScore(
   doc: Document,
   game: GoldGameSummary,
-  teamId: number,
+  teamId?: number,
 ): HTMLElement | null {
   if (!game.score) {
     return null;
   }
 
-  const isHome = game.home_team.id === teamId;
-  const teamName = isHome ? game.home_team.name : game.away_team.name;
-  const teamScore = isHome ? game.score.home : game.score.away;
-  const opponentName = isHome ? game.away_team.name : game.home_team.name;
-  const opponentScore = isHome ? game.score.away : game.score.home;
+  const isHome = typeof teamId === "number" ? game.home_team.id === teamId : undefined;
+  const teamName = isHome === undefined
+    ? game.away_team.name
+    : isHome
+      ? game.home_team.name
+      : game.away_team.name;
+  const teamScore = isHome === undefined ? game.score.away : isHome ? game.score.home : game.score.away;
+  const opponentName = isHome === undefined
+    ? game.home_team.name
+    : isHome
+      ? game.away_team.name
+      : game.home_team.name;
+  const opponentScore = isHome === undefined
+    ? game.score.home
+    : isHome
+      ? game.score.away
+      : game.score.home;
 
   const wrapper = doc.createElement("span");
   wrapper.className = "schedule-score";
@@ -970,6 +1275,10 @@ function getCalendarDateKey(value: string): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
     date.getDate(),
   ).padStart(2, "0")}`;
+}
+
+function getCurrentDate(): Date {
+  return new Date(Date.now());
 }
 
 function parseRoute(pathname: string): AppRoute {
