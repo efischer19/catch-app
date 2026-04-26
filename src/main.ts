@@ -225,16 +225,12 @@ function renderRoute(
   context.currentPathname = pathname;
   const route = parseRoute(pathname);
   const renderToken = ++context.renderToken;
-  const cachedBoxscoreGame =
-    route.view === "boxscore" ? context.gameCache.get(route.gamePk) ?? null : null;
-  const boxscoreBackTarget =
-    route.view === "boxscore"
-      ? getBoxscoreBackTarget(previousPathname, cachedBoxscoreGame)
-      : null;
   let view: HTMLElement;
-  if (route.view === "boxscore" && boxscoreBackTarget) {
-    view = createBoxscoreView(doc, route.gamePk, cachedBoxscoreGame, boxscoreBackTarget, () =>
-      navigateTo(boxscoreBackTarget.href, doc, win, context, true),
+  if (route.view === "boxscore") {
+    const cachedBoxscoreGame = context.gameCache.get(route.gamePk) ?? null;
+    const backTarget = getBoxscoreBackTarget(previousPathname, cachedBoxscoreGame);
+    view = createBoxscoreView(doc, route.gamePk, cachedBoxscoreGame, backTarget, () =>
+      navigateTo(backTarget.href, doc, win, context, true),
     );
   } else {
     view = createRouteView(doc, route);
