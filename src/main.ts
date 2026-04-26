@@ -8,6 +8,7 @@ import {
 import { DataService, type DataServiceClient } from "./services/data-service";
 import type {
   GoldGameSummary,
+  GoldScore,
   GoldTeamInfo,
   GoldTeamSchedule,
   GoldUpcomingGames,
@@ -1211,11 +1212,12 @@ function createAccessibleScore(
   game: GoldGameSummary,
   teamId?: number,
 ): HTMLElement | null {
-  if (!game.score) {
+  const score = game.score;
+  if (!score) {
     return null;
   }
 
-  const scoreDisplay = getAccessibleScoreDisplay(game, teamId);
+  const scoreDisplay = getAccessibleScoreDisplay(game, score, teamId);
 
   const wrapper = doc.createElement("span");
   wrapper.className = "schedule-score";
@@ -1234,6 +1236,7 @@ function createAccessibleScore(
 
 function getAccessibleScoreDisplay(
   game: GoldGameSummary,
+  score: GoldScore,
   teamId?: number,
 ): {
   primaryName: string;
@@ -1244,9 +1247,9 @@ function getAccessibleScoreDisplay(
   if (typeof teamId !== "number") {
     return {
       primaryName: game.away_team.name,
-      primaryScore: game.score?.away ?? 0,
+      primaryScore: score.away,
       secondaryName: game.home_team.name,
-      secondaryScore: game.score?.home ?? 0,
+      secondaryScore: score.home,
     };
   }
 
@@ -1254,15 +1257,15 @@ function getAccessibleScoreDisplay(
   return isHome
     ? {
         primaryName: game.home_team.name,
-        primaryScore: game.score?.home ?? 0,
+        primaryScore: score.home,
         secondaryName: game.away_team.name,
-        secondaryScore: game.score?.away ?? 0,
+        secondaryScore: score.away,
       }
     : {
         primaryName: game.away_team.name,
-        primaryScore: game.score?.away ?? 0,
+        primaryScore: score.away,
         secondaryName: game.home_team.name,
-        secondaryScore: game.score?.home ?? 0,
+        secondaryScore: score.home,
       };
 }
 
