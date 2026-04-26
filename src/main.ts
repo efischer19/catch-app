@@ -1215,37 +1215,55 @@ function createAccessibleScore(
     return null;
   }
 
-  const isHome = typeof teamId === "number" ? game.home_team.id === teamId : undefined;
-  const teamName = isHome === undefined
-    ? game.away_team.name
-    : isHome
-      ? game.home_team.name
-      : game.away_team.name;
-  const teamScore = isHome === undefined ? game.score.away : isHome ? game.score.home : game.score.away;
-  const opponentName = isHome === undefined
-    ? game.home_team.name
-    : isHome
-      ? game.away_team.name
-      : game.home_team.name;
-  const opponentScore = isHome === undefined
-    ? game.score.home
-    : isHome
-      ? game.score.away
-      : game.score.home;
+  const scoreDisplay = getAccessibleScoreDisplay(game, teamId);
 
   const wrapper = doc.createElement("span");
   wrapper.className = "schedule-score";
 
   const accessibleLabel = doc.createElement("span");
   accessibleLabel.className = "visually-hidden";
-  accessibleLabel.textContent = `${teamName} ${teamScore}, ${opponentName} ${opponentScore}`;
+  accessibleLabel.textContent = `${scoreDisplay.primaryName} ${scoreDisplay.primaryScore}, ${scoreDisplay.secondaryName} ${scoreDisplay.secondaryScore}`;
 
   const compactScore = doc.createElement("span");
   compactScore.setAttribute("aria-hidden", "true");
-  compactScore.textContent = `${teamScore}-${opponentScore}`;
+  compactScore.textContent = `${scoreDisplay.primaryScore}-${scoreDisplay.secondaryScore}`;
 
   wrapper.append(accessibleLabel, compactScore);
   return wrapper;
+}
+
+function getAccessibleScoreDisplay(
+  game: GoldGameSummary,
+  teamId?: number,
+): {
+  primaryName: string;
+  primaryScore: number;
+  secondaryName: string;
+  secondaryScore: number;
+} {
+  if (typeof teamId !== "number") {
+    return {
+      primaryName: game.away_team.name,
+      primaryScore: game.score?.away ?? 0,
+      secondaryName: game.home_team.name,
+      secondaryScore: game.score?.home ?? 0,
+    };
+  }
+
+  const isHome = game.home_team.id === teamId;
+  return isHome
+    ? {
+        primaryName: game.home_team.name,
+        primaryScore: game.score?.home ?? 0,
+        secondaryName: game.away_team.name,
+        secondaryScore: game.score?.away ?? 0,
+      }
+    : {
+        primaryName: game.away_team.name,
+        primaryScore: game.score?.away ?? 0,
+        secondaryName: game.home_team.name,
+        secondaryScore: game.score?.home ?? 0,
+      };
 }
 
 function createWatchHref(condensedGameUrl: string, game: GoldGameSummary): string {
