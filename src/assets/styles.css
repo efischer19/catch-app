@@ -642,7 +642,7 @@ footer p {
 
 .schedule-status--scheduled {
   background: color-mix(in srgb, var(--color-accent) 10%, var(--color-bg));
-  color: var(--color-accent);
+  color: #0b57d0;
 }
 
 .schedule-status--final {

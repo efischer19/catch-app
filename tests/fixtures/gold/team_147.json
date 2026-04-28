@@ -1,0 +1,152 @@
+{
+  "games": [
+    {
+      "away_team": {
+        "abbreviation": "BOS",
+        "division": "AL East",
+        "id": 111,
+        "league": "American League",
+        "name": "Boston Red Sox"
+      },
+      "boxscore_summary": {
+        "away_e": 1,
+        "away_h": 8,
+        "away_r": 2,
+        "home_e": 0,
+        "home_h": 11,
+        "home_r": 6,
+        "losing_pitcher": "Brayan Bello (5-6)",
+        "save_pitcher": null,
+        "winning_pitcher": "Gerrit Cole (9-2)"
+      },
+      "condensed_game_url": "https://media.test/red-sox-yankees.mp4",
+      "date": "2026-07-15T23:05:00Z",
+      "game_pk": 8101,
+      "home_team": {
+        "abbreviation": "NYY",
+        "division": "AL East",
+        "id": 147,
+        "league": "American League",
+        "name": "New York Yankees"
+      },
+      "score": {
+        "away": 2,
+        "home": 6
+      },
+      "score_display": "2-6",
+      "status": "Final"
+    },
+    {
+      "away_team": {
+        "abbreviation": "TOR",
+        "division": "AL East",
+        "id": 141,
+        "league": "American League",
+        "name": "Toronto Blue Jays"
+      },
+      "boxscore_summary": null,
+      "condensed_game_url": null,
+      "date": "2026-07-20T17:05:00Z",
+      "game_number": 1,
+      "game_pk": 8103,
+      "home_team": {
+        "abbreviation": "NYY",
+        "division": "AL East",
+        "id": 147,
+        "league": "American League",
+        "name": "New York Yankees"
+      },
+      "score": null,
+      "score_display": null,
+      "status": "Scheduled"
+    },
+    {
+      "away_team": {
+        "abbreviation": "TOR",
+        "division": "AL East",
+        "id": 141,
+        "league": "American League",
+        "name": "Toronto Blue Jays"
+      },
+      "boxscore_summary": null,
+      "condensed_game_url": null,
+      "date": "2026-07-20T23:05:00Z",
+      "game_number": 2,
+      "game_pk": 8104,
+      "home_team": {
+        "abbreviation": "NYY",
+        "division": "AL East",
+        "id": 147,
+        "league": "American League",
+        "name": "New York Yankees"
+      },
+      "score": null,
+      "score_display": null,
+      "status": "Scheduled"
+    },
+    {
+      "away_team": {
+        "abbreviation": "TB",
+        "division": "AL East",
+        "id": 139,
+        "league": "American League",
+        "name": "Tampa Bay Rays"
+      },
+      "boxscore_summary": null,
+      "condensed_game_url": null,
+      "date": "2026-07-22T23:05:00Z",
+      "game_pk": 8105,
+      "home_team": {
+        "abbreviation": "NYY",
+        "division": "AL East",
+        "id": 147,
+        "league": "American League",
+        "name": "New York Yankees"
+      },
+      "score": null,
+      "score_display": null,
+      "status": "Postponed"
+    },
+    {
+      "away_team": {
+        "abbreviation": "SEA",
+        "division": "AL West",
+        "id": 136,
+        "league": "American League",
+        "name": "Seattle Mariners"
+      },
+      "boxscore_summary": {
+        "away_e": 0,
+        "away_h": 7,
+        "away_r": 3,
+        "home_e": 1,
+        "home_h": 9,
+        "home_r": 4,
+        "losing_pitcher": "George Kirby (8-7)",
+        "save_pitcher": "Clay Holmes (21)",
+        "winning_pitcher": "Carlos Rodón (10-5)"
+      },
+      "condensed_game_url": null,
+      "date": "2026-07-24T23:05:00Z",
+      "game_pk": 8106,
+      "home_team": {
+        "abbreviation": "NYY",
+        "division": "AL East",
+        "id": 147,
+        "league": "American League",
+        "name": "New York Yankees"
+      },
+      "score": {
+        "away": 3,
+        "home": 4
+      },
+      "score_display": "3-4",
+      "status": "Final"
+    }
+  ],
+  "last_updated": "2026-07-24T23:45:00Z",
+  "season_year": 2026,
+  "team_abbreviation": "NYY",
+  "team_id": 147,
+  "team_name": "New York Yankees"
+}

@@ -43,6 +43,9 @@ function createDataService(schedule: GoldTeamSchedule = yankeesSchedule): DataSe
   };
 }
 
+const getViewHeading = (): HTMLElement | null =>
+  document.querySelector<HTMLElement>('[data-view-heading="true"]');
+
 describe("app routing", () => {
   let cleanup: (() => void) | undefined;
 
@@ -65,9 +68,7 @@ describe("app routing", () => {
       dataService: createDataService(),
     });
 
-    expect(document.querySelector("h2")?.textContent).toBe(
-      "New York Yankees schedule",
-    );
+    expect(getViewHeading()?.textContent).toBe("New York Yankees schedule");
     expect(document.title).toBe("Catch | New York Yankees");
     expect(
       document.querySelector('[aria-current="page"][data-team-link="true"]')
@@ -91,10 +92,8 @@ describe("app routing", () => {
 
     expect(pushStateSpy).toHaveBeenCalledWith({}, "", "/team/147");
     expect(window.location.pathname).toBe("/team/147");
-    expect(document.querySelector("h2")?.textContent).toBe(
-      "New York Yankees schedule",
-    );
-    expect(document.activeElement).toBe(document.querySelector("h2"));
+    expect(getViewHeading()?.textContent).toBe("New York Yankees schedule");
+    expect(document.activeElement).toBe(getViewHeading());
   });
 
   it("supports arrow-key navigation and Enter selection in the team selector", () => {
@@ -122,8 +121,6 @@ describe("app routing", () => {
     );
 
     expect(window.location.pathname).toBe("/team/111");
-    expect(document.querySelector("h2")?.textContent).toBe(
-      "Boston Red Sox schedule",
-    );
+    expect(getViewHeading()?.textContent).toBe("Boston Red Sox schedule");
   });
 });
