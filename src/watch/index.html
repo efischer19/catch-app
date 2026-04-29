@@ -11,18 +11,18 @@
   <link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body class="watch-page">
-  <a href="#watch-main" class="skip-link">Skip to player</a>
+  <a href="#watch-main" class="skip-link">Skip to main content</a>
   <p id="watch-status-announcements" class="visually-hidden" aria-live="polite"></p>
 
   <div class="watch-layout">
     <header class="watch-header" role="banner">
       <a class="watch-back-link" href="/">← Back to Catch</a>
       <div id="cast-button-container" class="cast-button-container" hidden>
-        <google-cast-launcher></google-cast-launcher>
+        <google-cast-launcher role="button" aria-label="Start casting" title="Start casting"></google-cast-launcher>
       </div>
     </header>
 
-    <main id="watch-main" class="watch-main" role="main">
+    <main id="watch-main" class="watch-main" role="main" tabindex="-1">
       <section class="watch-player-panel" aria-labelledby="watch-title">
         <div class="watch-player-shell">
           <video

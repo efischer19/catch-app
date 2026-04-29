@@ -94,7 +94,7 @@ describe("component rendering", () => {
 
     await screen.findByRole("heading", { name: "New York Yankees schedule" });
 
-    const teamSelector = screen.getByRole("navigation", { name: "MLB teams" });
+    const teamSelector = screen.getByRole("navigation", { name: "Select a team" });
     expect(within(teamSelector).getByRole("heading", { name: "AL" })).toBeTruthy();
     expect(within(teamSelector).getByRole("heading", { name: "NL" })).toBeTruthy();
     expect(within(teamSelector).getAllByRole("link")).toHaveLength(30);
@@ -258,6 +258,7 @@ describe("component rendering", () => {
 
     const controller = initWatchPage();
     expect(controller).not.toBeNull();
+    expect(screen.getByLabelText("Video player for Yankees vs Red Sox")).toBeTruthy();
     controller?.handleCastApiAvailable(true);
 
     castStateListeners[0]?.({ castState: "CONNECTED" });
@@ -270,8 +271,14 @@ describe("component rendering", () => {
 
     expect(screen.getByRole("button", { name: "Play" })).toBeTruthy();
     expect((screen.getByRole("slider", { name: "Seek" }) as HTMLInputElement).value).toBe("84");
+    expect(screen.getByRole("slider", { name: "Seek" }).getAttribute("aria-valuetext")).toBe(
+      "1:24 / 2:00",
+    );
     expect((screen.getByRole("slider", { name: "Volume" }) as HTMLInputElement).value).toBe(
       "40",
+    );
+    expect(screen.getByRole("slider", { name: "Volume" }).getAttribute("aria-valuetext")).toBe(
+      "40%",
     );
     expect(screen.getByText("Connected to Living Room TV.")).toBeTruthy();
   });

@@ -27,6 +27,7 @@ type AppRoute =
   | { view: "teams" }
   | { view: "team"; team: Team }
   | { view: "boxscore"; gamePk: number }
+  | { view: "accessibility" }
   | { view: "team-not-found" }
   | { view: "not-found" };
 
@@ -45,6 +46,7 @@ const LEAGUES: readonly League[] = ["AL", "NL"];
 const DIVISIONS: readonly Division[] = ["East", "Central", "West"];
 const TEAM_ROUTE_PATTERN = /^\/team\/(\d+)$/;
 const BOXSCORE_ROUTE_PATTERN = /^\/boxscore\/(\d+)$/;
+const ACCESSIBILITY_ROUTE = "/accessibility";
 const MONTH_FORMATTER = new Intl.DateTimeFormat(undefined, {
   month: "long",
   year: "numeric",
@@ -68,6 +70,7 @@ const navRouteMatchesPath = (href: string, pathname: string): boolean =>
     : pathname === "/teams" || pathname.startsWith("/team/");
 
 document.addEventListener("DOMContentLoaded", () => {
+  initSkipLinks();
   initThemeToggle();
   initRouter();
   registerServiceWorker();
@@ -109,13 +112,8 @@ export function initRouter(
     if (url.origin !== win.location.origin || !isAppRoute(url.pathname)) return;
 
     event.preventDefault();
-    navigateTo(
-      url.pathname,
-      doc,
-      win,
-      context,
-      url.pathname.startsWith("/team/") || url.pathname.startsWith("/boxscore/"),
-    );
+    const focusDestinationHeading = true;
+    navigateTo(url.pathname, doc, win, context, focusDestinationHeading);
   };
 
   const handleKeydown = (event: KeyboardEvent): void => {
@@ -287,6 +285,9 @@ function updateDocumentTitle(doc: Document, route: AppRoute): void {
     case "boxscore":
       doc.title = "Catch | Boxscore";
       break;
+    case "accessibility":
+      doc.title = "Catch | Accessibility statement";
+      break;
     case "team-not-found":
       doc.title = "Catch | Team not found";
       break;
@@ -306,6 +307,8 @@ function createRouteView(doc: Document, route: AppRoute): HTMLElement {
       return createTeamScheduleView(doc, route.team);
     case "boxscore":
       return createViewSection(doc, `Boxscore ${route.gamePk}`);
+    case "accessibility":
+      return createAccessibilityStatementView(doc);
     case "team-not-found":
       return createMissingTeamView(doc);
     case "not-found":
@@ -441,6 +444,58 @@ function createNotFoundView(doc: Document): HTMLElement {
       doc,
       "Use the main navigation to return to Today's Slate or browse Teams.",
     ),
+  );
+  return section;
+}
+
+function createAccessibilityStatementView(doc: Document): HTMLElement {
+  const section = createViewSection(doc, "Accessibility statement");
+  const intro = createParagraph(
+    doc,
+    "Catch targets WCAG 2.1 Level AA compliance for the schedule, team, boxscore, and watch experiences.",
+  );
+  const automatedHeading = doc.createElement("h3");
+  automatedHeading.textContent = "Automated testing";
+  const automatedText = createParagraph(
+    doc,
+    "Automated axe-core scans run in Playwright on every pull request for the primary application views, including Today's Slate, Teams, team schedules, boxscores, the watch page, and this statement page.",
+  );
+  const manualHeading = doc.createElement("h3");
+  manualHeading.textContent = "Manual testing";
+  const manualText = createParagraph(
+    doc,
+    "Keyboard navigation, skip links, focus management, and screen reader regression checks are documented in the manual accessibility checklist for VoiceOver and NVDA.",
+  );
+  const checklistLink = createActionLink(
+    doc,
+    "https://github.com/efischer19/catch-app/blob/main/docs-src/manual-a11y-checklist.md",
+    "Open the manual accessibility checklist",
+    {
+      external: true,
+    },
+  );
+  const checklistActions = doc.createElement("p");
+  checklistActions.append(checklistLink);
+  const limitationsHeading = doc.createElement("h3");
+  limitationsHeading.textContent = "Known limitations";
+  const limitations = doc.createElement("ul");
+  const castItem = doc.createElement("li");
+  castItem.textContent =
+    "The Google Cast launcher is provided by Google's sender SDK, so it should be re-verified when the SDK changes.";
+  const contentItem = doc.createElement("li");
+  contentItem.textContent =
+    "Accessibility reviews should be repeated whenever new views, controls, or visual themes are introduced.";
+  limitations.append(castItem, contentItem);
+
+  section.append(
+    intro,
+    automatedHeading,
+    automatedText,
+    manualHeading,
+    manualText,
+    checklistActions,
+    limitationsHeading,
+    limitations,
   );
   return section;
 }
@@ -895,11 +950,12 @@ function createTeamSelector(
 ): HTMLElement {
   const nav = doc.createElement("nav");
   nav.className = "team-selector";
-  nav.setAttribute("aria-label", "MLB teams");
 
   const title = doc.createElement("h2");
+  title.id = "team-selector-heading";
   title.className = "team-selector__title";
   title.textContent = "Select a team";
+  nav.setAttribute("aria-labelledby", title.id);
   nav.append(title);
 
   for (const league of LEAGUES) {
@@ -1560,6 +1616,7 @@ function getCurrentDate(): Date {
 function parseRoute(pathname: string): AppRoute {
   if (pathname === "/") return { view: "slate" };
   if (pathname === "/teams") return { view: "teams" };
+  if (pathname === ACCESSIBILITY_ROUTE) return { view: "accessibility" };
 
   const match = TEAM_ROUTE_PATTERN.exec(pathname);
   if (match) {
@@ -1580,6 +1637,7 @@ function isAppRoute(pathname: string): boolean {
   return (
     pathname === "/" ||
     pathname === "/teams" ||
+    pathname === ACCESSIBILITY_ROUTE ||
     TEAM_ROUTE_PATTERN.test(pathname) ||
     BOXSCORE_ROUTE_PATTERN.test(pathname)
   );
@@ -1653,4 +1711,19 @@ function announceStatus(message: string): void {
   requestAnimationFrame(() => {
     status.textContent = message;
   });
+}
+
+function initSkipLinks(doc: Document = document): void {
+  for (const link of doc.querySelectorAll<HTMLAnchorElement>(".skip-link[href^='#']")) {
+    link.addEventListener("click", () => {
+      const targetId = link.getAttribute("href")?.slice(1);
+      if (!targetId) {
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        doc.getElementById(targetId)?.focus();
+      });
+    });
+  }
 }

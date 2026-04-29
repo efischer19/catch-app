@@ -30,6 +30,7 @@ export interface WatchPageController {
 }
 
 export function initWatchPage(doc: Document = document): WatchPageController | null {
+  initSkipLinks(doc);
   const elements = getWatchElements(doc);
   if (!elements) {
     return null;
@@ -308,6 +309,7 @@ function getWatchElements(doc: Document): WatchElements | null {
 function applyMedia(elements: WatchElements, media: WatchMedia): void {
   elements.title.textContent = media.title;
   elements.subtitle.textContent = media.subtitle;
+  elements.video.setAttribute("aria-label", `Video player for ${media.title}`);
   elements.video.src = media.src;
   if (media.posterUrl) {
     elements.video.poster = media.posterUrl;
@@ -336,8 +338,10 @@ function updateCastingControls(
     elements.castPlayPauseButton.textContent = "Pause";
     elements.castSeek.max = "0";
     elements.castSeek.value = "0";
+    elements.castSeek.setAttribute("aria-valuetext", "0:00 of 0:00");
     elements.castTimeline.textContent = "0:00 / 0:00";
     elements.castVolume.value = "100";
+    elements.castVolume.setAttribute("aria-valuetext", "100%");
     return;
   }
 
@@ -347,8 +351,13 @@ function updateCastingControls(
   elements.castPlayPauseButton.textContent = state.isPaused ? "Play" : "Pause";
   elements.castSeek.max = String(duration);
   elements.castSeek.value = String(currentTime);
+  elements.castSeek.setAttribute("aria-valuetext", formatTimeline(currentTime, duration));
   elements.castTimeline.textContent = formatTimeline(currentTime, duration);
   elements.castVolume.value = String(Math.round(state.volumeLevel * 100));
+  elements.castVolume.setAttribute(
+    "aria-valuetext",
+    `${Math.round(state.volumeLevel * 100)}%`,
+  );
 }
 
 function getDeviceName(
@@ -418,6 +427,21 @@ function formatTime(value: number): string {
 
 function isCastSdkReady(): boolean {
   return typeof cast !== "undefined" && typeof chrome !== "undefined";
+}
+
+function initSkipLinks(doc: Document): void {
+  for (const link of doc.querySelectorAll<HTMLAnchorElement>(".skip-link[href^='#']")) {
+    link.addEventListener("click", () => {
+      const targetId = link.getAttribute("href")?.slice(1);
+      if (!targetId) {
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        doc.getElementById(targetId)?.focus();
+      });
+    });
+  }
 }
 
 if (document.readyState === "loading") {
