@@ -6,10 +6,17 @@ import {
   type Team,
 } from "./teams";
 import { DataService, type DataServiceClient } from "./services/data-service";
+import {
+  formatGameDate,
+  formatLastUpdated,
+  formatScheduleGameTime,
+  formatSlateGameTime,
+  getAccessibleScoreDisplay,
+  getCalendarDateKey,
+} from "./utils/game-formatting";
 import type {
   GoldBoxscoreSummary,
   GoldGameSummary,
-  GoldScore,
   GoldTeamInfo,
   GoldTeamSchedule,
   GoldUpcomingGames,
@@ -42,29 +49,11 @@ const MONTH_FORMATTER = new Intl.DateTimeFormat(undefined, {
   month: "long",
   year: "numeric",
 });
-const GAME_DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-});
 const FULL_DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
   weekday: "long",
   month: "long",
   day: "numeric",
   year: "numeric",
-});
-const TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
-  hour: "numeric",
-  minute: "2-digit",
-});
-const SLATE_TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
-  hour: "numeric",
-  minute: "2-digit",
-  timeZoneName: "short",
-});
-const LAST_UPDATED_FORMATTER = new Intl.DateTimeFormat(undefined, {
-  dateStyle: "medium",
-  timeStyle: "short",
 });
 const BOXSCORE_TABLE_COLUMNS = [
   { label: "Team", title: null },
@@ -908,7 +897,7 @@ function createTeamSelector(
   nav.className = "team-selector";
   nav.setAttribute("aria-label", "MLB teams");
 
-  const title = doc.createElement("h3");
+  const title = doc.createElement("h2");
   title.className = "team-selector__title";
   title.textContent = "Select a team";
   nav.append(title);
@@ -917,7 +906,7 @@ function createTeamSelector(
     const leagueSection = doc.createElement("section");
     leagueSection.className = "team-selector__league";
 
-    const leagueHeading = doc.createElement("h4");
+    const leagueHeading = doc.createElement("h3");
     leagueHeading.className = "team-selector__league-heading";
     leagueHeading.textContent = league;
     leagueSection.append(leagueHeading);
@@ -929,7 +918,7 @@ function createTeamSelector(
       const divisionSection = doc.createElement("section");
       divisionSection.className = "team-selector__division";
 
-      const divisionHeading = doc.createElement("h5");
+      const divisionHeading = doc.createElement("h4");
       divisionHeading.className = "team-selector__division-heading";
       divisionHeading.textContent = division;
       divisionSection.append(divisionHeading);
@@ -1237,7 +1226,7 @@ function getSlateGameDetails(doc: Document, game: GoldGameSummary): SlateGameDet
   if (game.status === "Scheduled") {
     return {
       boxscoreHref: null,
-      detailLabel: SLATE_TIME_FORMATTER.format(new Date(game.date)),
+      detailLabel: formatSlateGameTime(game.date),
       note: null,
       score: null,
       statusLabel: "Scheduled",
@@ -1286,7 +1275,7 @@ function getSlateGameDetails(doc: Document, game: GoldGameSummary): SlateGameDet
 function getGameDetails(doc: Document, teamId: number, game: GoldGameSummary): GameDetails {
   const isHome = game.home_team.id === teamId;
   const opponent = isHome ? game.away_team : game.home_team;
-  const compactDate = GAME_DATE_FORMATTER.format(new Date(game.date));
+  const compactDate = formatGameDate(game.date);
   const matchupPrefix = isHome ? "vs" : "at";
   const matchupLabel = `${matchupPrefix} ${opponent.name}`;
   const boxscoreHref = game.status === "Final" ? `/boxscore/${game.game_pk}` : null;
@@ -1302,7 +1291,7 @@ function getGameDetails(doc: Document, teamId: number, game: GoldGameSummary): G
       matchupLabel,
       note: null,
       opponent,
-      resultLabel: TIME_FORMATTER.format(new Date(game.date)),
+      resultLabel: formatScheduleGameTime(game.date),
       score: null,
       statusLabel: "Scheduled",
       statusVariant: "scheduled",
@@ -1555,41 +1544,6 @@ function appendBoxscoreActions(
   return section;
 }
 
-function getAccessibleScoreDisplay(
-  game: GoldGameSummary,
-  score: GoldScore,
-  teamId?: number,
-): {
-  primaryName: string;
-  primaryScore: number;
-  secondaryName: string;
-  secondaryScore: number;
-} {
-  if (typeof teamId !== "number") {
-    return {
-      primaryName: game.away_team.name,
-      primaryScore: score.away,
-      secondaryName: game.home_team.name,
-      secondaryScore: score.home,
-    };
-  }
-
-  const isHome = game.home_team.id === teamId;
-  return isHome
-    ? {
-        primaryName: game.home_team.name,
-        primaryScore: score.home,
-        secondaryName: game.away_team.name,
-        secondaryScore: score.away,
-      }
-    : {
-        primaryName: game.away_team.name,
-        primaryScore: score.away,
-        secondaryName: game.home_team.name,
-        secondaryScore: score.home,
-      };
-}
-
 function createWatchHref(condensedGameUrl: string, game: GoldGameSummary): string {
   const params = new URLSearchParams({
     src: condensedGameUrl,
@@ -1597,26 +1551,6 @@ function createWatchHref(condensedGameUrl: string, game: GoldGameSummary): strin
     title: `${game.away_team.name} at ${game.home_team.name}`,
   });
   return `/watch/?${params.toString()}`;
-}
-
-function formatLastUpdated(value: string | null): string {
-  if (!value) {
-    return "unavailable";
-  }
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  return LAST_UPDATED_FORMATTER.format(parsed);
-}
-
-function getCalendarDateKey(value: string): string {
-  const date = new Date(value);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-    date.getDate(),
-  ).padStart(2, "0")}`;
 }
 
 function getCurrentDate(): Date {

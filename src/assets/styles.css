@@ -21,6 +21,7 @@
   --color-link: #1a5fb4;
   --color-link-hover: #0d3b7a;
   --color-accent: #1a73e8;
+  --color-status-scheduled: #0b57d0;
   --color-border: #d0d0d0;
   --color-surface: #f5f5f5;
   --color-code-bg: #f0f0f0;
@@ -52,6 +53,7 @@
   --color-link: #6ea8fe;
   --color-link-hover: #9ec5fe;
   --color-accent: #6ea8fe;
+  --color-status-scheduled: #8ab4f8;
   --color-border: #404040;
   --color-surface: #2a2a2a;
   --color-code-bg: #2a2a2a;
@@ -642,7 +644,7 @@ footer p {
 
 .schedule-status--scheduled {
   background: color-mix(in srgb, var(--color-accent) 10%, var(--color-bg));
-  color: var(--color-accent);
+  color: var(--color-status-scheduled);
 }
 
 .schedule-status--final {

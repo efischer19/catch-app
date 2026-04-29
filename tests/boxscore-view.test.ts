@@ -128,6 +128,9 @@ function createDataService(
 describe("boxscore view", () => {
   let cleanup: (() => void) | undefined;
 
+  const getViewHeading = (): HTMLElement | null =>
+    document.querySelector<HTMLElement>('[data-view-heading="true"]');
+
   beforeEach(() => {
     document.body.innerHTML = appShell;
     window.history.pushState({}, "", "/team/147");
@@ -162,7 +165,7 @@ describe("boxscore view", () => {
     document.querySelector<HTMLButtonElement>(".boxscore-view__controls button")?.click();
 
     expect(window.location.pathname).toBe("/team/147");
-    expect(document.querySelector("h2")?.textContent).toBe("New York Yankees schedule");
+    expect(getViewHeading()?.textContent).toBe("New York Yankees schedule");
   });
 
   it("shows a postponed-game message instead of crashing", async () => {

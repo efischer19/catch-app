@@ -54,6 +54,9 @@ dist/
 build/
 out/
 .output/
+coverage/
+playwright-report/
+test-results/
 
 # =============================================================================
 # Frontend dependencies and package managers

@@ -1,0 +1,64 @@
+{
+  "games": [
+    {
+      "away_team": {
+        "abbreviation": "BOS",
+        "division": "AL East",
+        "id": 111,
+        "league": "American League",
+        "name": "Boston Red Sox"
+      },
+      "boxscore_summary": {
+        "away_e": 1,
+        "away_h": 8,
+        "away_r": 2,
+        "home_e": 0,
+        "home_h": 11,
+        "home_r": 6,
+        "losing_pitcher": "Brayan Bello (5-6)",
+        "save_pitcher": null,
+        "winning_pitcher": "Gerrit Cole (9-2)"
+      },
+      "condensed_game_url": "https://media.test/red-sox-yankees.mp4",
+      "date": "2026-07-15T23:05:00Z",
+      "game_pk": 8101,
+      "home_team": {
+        "abbreviation": "NYY",
+        "division": "AL East",
+        "id": 147,
+        "league": "American League",
+        "name": "New York Yankees"
+      },
+      "score": {
+        "away": 2,
+        "home": 6
+      },
+      "score_display": "2-6",
+      "status": "Final"
+    },
+    {
+      "away_team": {
+        "abbreviation": "SD",
+        "division": "NL West",
+        "id": 135,
+        "league": "National League",
+        "name": "San Diego Padres"
+      },
+      "boxscore_summary": null,
+      "condensed_game_url": null,
+      "date": "2026-07-16T00:40:00Z",
+      "game_pk": 8102,
+      "home_team": {
+        "abbreviation": "LAD",
+        "division": "NL West",
+        "id": 119,
+        "league": "National League",
+        "name": "Los Angeles Dodgers"
+      },
+      "score": null,
+      "score_display": null,
+      "status": "Scheduled"
+    }
+  ],
+  "last_updated": "2026-07-15T22:45:00Z"
+}

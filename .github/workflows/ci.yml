@@ -130,7 +130,31 @@ jobs:
 
       - name: Test
         if: steps.check-pkg.outputs.found == 'true'
-        run: npm test
+        run: npm run test:coverage
+
+      - name: Install Playwright browser
+        if: steps.check-pkg.outputs.found == 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        if: steps.check-pkg.outputs.found == 'true'
+        run: npm run test:e2e
+
+      - name: Upload coverage report
+        if: steps.check-pkg.outputs.found == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage
+          if-no-files-found: error
+
+      - name: Upload Playwright report
+        if: always() && steps.check-pkg.outputs.found == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report
+          if-no-files-found: ignore
 
   markdown-lint:
     name: Markdown Lint
