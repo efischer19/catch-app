@@ -745,6 +745,12 @@ footer p {
   line-height: 1;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle {
+    transition: none;
+  }
+}
+
 /* =========================================================
    Responsive Design
    ========================================================= */

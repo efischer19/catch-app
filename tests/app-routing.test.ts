@@ -32,6 +32,16 @@ const yankeesSchedule: GoldTeamSchedule = {
 function createDataService(schedule: GoldTeamSchedule = yankeesSchedule): DataServiceClient {
   return {
     clearCache: vi.fn(),
+    getUpcomingGames: vi.fn().mockResolvedValue({
+      ok: true,
+      status: "success",
+      data: {
+        games: [],
+        last_updated: "2026-04-13T19:05:00Z",
+      },
+      fromCache: false,
+      lastUpdated: "2026-04-13T19:05:00Z",
+    }),
     getTeamSchedule: vi.fn().mockResolvedValue({
       ok: true,
       status: "success",
@@ -39,7 +49,6 @@ function createDataService(schedule: GoldTeamSchedule = yankeesSchedule): DataSe
       fromCache: false,
       lastUpdated: schedule.last_updated ?? null,
     }),
-    getUpcomingGames: vi.fn(),
   };
 }
 
@@ -96,6 +105,22 @@ describe("app routing", () => {
     expect(document.activeElement).toBe(getViewHeading());
   });
 
+  it("focuses the destination heading for top-level navigation changes", () => {
+    cleanup = initRouter(document, window, {
+      dataService: createDataService(),
+    });
+    const slateLink = document.querySelector<HTMLAnchorElement>('a[href="/"]');
+    expect(slateLink).not.toBeNull();
+
+    slateLink?.dispatchEvent(
+      new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }),
+    );
+
+    expect(window.location.pathname).toBe("/");
+    expect(getViewHeading()?.textContent).toBe("Today's Slate");
+    expect(document.activeElement).toBe(getViewHeading());
+  });
+
   it("supports arrow-key navigation and Enter selection in the team selector", () => {
     cleanup = initRouter(document, window, {
       dataService: createDataService(),
@@ -122,5 +147,17 @@ describe("app routing", () => {
 
     expect(window.location.pathname).toBe("/team/111");
     expect(getViewHeading()?.textContent).toBe("Boston Red Sox schedule");
+  });
+
+  it("renders the accessibility statement route", () => {
+    window.history.pushState({}, "", "/accessibility");
+
+    cleanup = initRouter(document, window, {
+      dataService: createDataService(),
+    });
+
+    expect(getViewHeading()?.textContent).toBe("Accessibility statement");
+    expect(document.title).toBe("Catch | Accessibility statement");
+    expect(document.body.textContent).toContain("Known limitations");
   });
 });
