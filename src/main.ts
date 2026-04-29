@@ -112,7 +112,8 @@ export function initRouter(
     if (url.origin !== win.location.origin || !isAppRoute(url.pathname)) return;
 
     event.preventDefault();
-    navigateTo(url.pathname, doc, win, context, true);
+    const focusDestinationHeading = true;
+    navigateTo(url.pathname, doc, win, context, focusDestinationHeading);
   };
 
   const handleKeydown = (event: KeyboardEvent): void => {
