@@ -43,7 +43,7 @@ jobs:
 
       - name: Set up Node.js
         if: steps.check-pkg.outputs.found == 'true'
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: '.node-version'
           cache: 'npm'
